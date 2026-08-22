@@ -1,0 +1,8 @@
+.idea
+others
+
+### Test ###
+**/src/test
+
+vibe-music-server
+vibe-music-admin
