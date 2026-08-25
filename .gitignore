@@ -3,5 +3,4 @@ others
 
 ### Test ###
 **/src/test
-
-vibe-music-admin
+*.drawio
