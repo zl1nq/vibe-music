@@ -1,0 +1,86 @@
+spring:
+  profiles:
+    active: dev
+
+  # 配置数据源
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${vibe-music.datasource.url} # 修改你的 MySQL 地址和库名
+    username: ${vibe-music.datasource.username} # 修改你的 MySQL 用户名
+    password: ${vibe-music.datasource.password} # 修改你的 MySQL 密码
+    type: com.alibaba.druid.pool.DruidDataSource # 配置连接池
+
+  # Redis服务连接配置
+  data:
+    redis:
+      database: 1
+      host: ${vibe-music.redis.host}
+      port: ${vibe-music.redis.port}
+      password: ${vibe-music.redis.password}
+
+  servlet:
+    multipart:
+      max-file-size: 100MB # 设置最大上传文件大小为100MB
+      max-request-size: 100MB # 设置最大请求大小为100MB
+
+  # 对于注解的Redis缓存数据统一设置有效期为10分钟，单位毫秒
+  cache:
+    redis:
+      time-to-live: 600000
+
+  # 配置邮件服务
+  mail:
+    # 配置邮箱账户和密码
+    host: ${vibe-music.mail.host} # 修改你的 SMTP 服务器地址
+    username: ${vibe-music.mail.username} # 修改你的邮箱账号
+    password: ${vibe-music.mail.password} # 修改你的邮箱应用密码或授权码
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            enable: true
+          socketFactory:
+            port: 465
+            class: javax.net.ssl.SSLSocketFactory
+          # 邮件服务超时时间配置
+          connectiontimeout: 5000
+          timeout: 3000
+          writetimeout: 5000
+
+# 配置 mybatis-plus
+mybatis-plus:
+  type-aliases-package: cn.edu.seig.pojo # 实体类所在的包，允许用实体类类名作为别名
+
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 配置日志
+    map-underscore-to-camel-case: true # 类属性与表字段的驼峰映射
+
+  global-config:
+    db-config: # 数据库配置
+      table-prefix: tb_  # 表名前缀为tb_，表名为前缀连接类名（小写）
+
+# 定义角色和路径权限的映射关系
+role-path-permissions:
+  permissions:
+    ROLE_ADMIN:
+      - "/admin/"
+    ROLE_USER:
+      - "/user/"
+      - "/playlist/"
+      - "/artist/"
+      - "/song/"
+      - "/favorite/"
+      - "/comment/"
+      - "/banner/"
+      - "/feedback/"
+
+minio:
+  endpoint: ${vibe-music.minio.endpoint} # 修改你的 MinIO 端点
+  accessKey: ${vibe-music.minio.accessKey} # 修改你的 MinIO Access Key
+  secretKey: ${vibe-music.minio.secretKey} # 修改你的 MinIO Secret Key
+  bucket: ${vibe-music.minio.bucket} # 确认 Bucket 名称与你创建的一致

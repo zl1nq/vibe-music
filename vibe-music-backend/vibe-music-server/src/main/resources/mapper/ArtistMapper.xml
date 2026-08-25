@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.vibemusic.mapper.ArtistMapper">
+
+    <!-- 定义 ResultMap -->
+    <resultMap id="ArtistDetailVOResultMap" type="com.vibemusic.model.vo.ArtistDetailVO">
+        <id column="artistId" property="artistId"/>
+        <result column="artistName" property="artistName"/>
+        <result column="gender" property="gender"/>
+        <result column="avatar" property="avatar"/>
+        <result column="birth" property="birth"/>
+        <result column="area" property="area"/>
+        <result column="introduction" property="introduction"/>
+        <collection property="songs" ofType="com.vibemusic.model.vo.SongVO">
+            <id column="songId" property="songId"/>
+            <result column="songName" property="songName"/>
+            <result column="artistNameOfSong" property="artistName"/>
+            <result column="album" property="album"/>
+            <result column="duration" property="duration"/>
+            <result column="songCoverUrl" property="coverUrl"/>
+            <result column="audioUrl" property="audioUrl"/>
+            <result column="releaseTime" property="releaseTime"/>
+        </collection>
+    </resultMap>
+
+    <!-- 查询歌手详情 -->
+    <select id="getArtistDetailById" resultMap="ArtistDetailVOResultMap">
+        SELECT a.id           AS artistId,
+               a.name         AS artistName,
+               a.gender       AS gender,
+               a.avatar       AS avatar,
+               a.birth        AS birth,
+               a.area         AS area,
+               a.introduction AS introduction,
+               a.name         AS artistNameOfSong,
+               s.id           AS songId,
+               s.name         AS songName,
+               s.album        AS album,
+               s.duration     AS duration,
+               s.cover_url    AS songCoverUrl,
+               s.audio_url    AS audioUrl,
+               s.release_time AS releaseTime
+        FROM tb_artist a
+                 LEFT JOIN tb_song s ON a.id = s.artist_id
+        WHERE a.id = #{artistId}
+    </select>
+
+</mapper>

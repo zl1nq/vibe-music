@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.vibemusic.mapper.UserFavoriteMapper">
+
+    <!-- 查询根据 favoriteStyle 获取对应的 ID -->
+    <select id="getFavoriteIdsByStyle" resultType="java.lang.Long">
+        SELECT id
+        FROM tb_playlist
+        WHERE style IN
+        <foreach collection="favoriteStyles" item="style" open="(" close=")" separator=",">
+            #{style}
+        </foreach>
+    </select>
+
+</mapper>

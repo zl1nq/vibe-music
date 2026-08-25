@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.vibemusic.mapper.PlaylistMapper">
+
+    <!-- 定义 ResultMap -->
+    <resultMap id="PlaylistDetailVOResultMap" type="com.vibemusic.model.vo.PlaylistDetailVO">
+        <id column="playlistId" property="playlistId"/>
+        <result column="title" property="title"/>
+        <result column="coverUrl" property="coverUrl"/>
+        <result column="introduction" property="introduction"/>
+        <collection property="songs" ofType="com.vibemusic.model.vo.SongVO">
+            <id column="songId" property="songId"/>
+            <result column="songName" property="songName"/>
+            <result column="artistName" property="artistName"/>
+            <result column="album" property="album"/>
+            <result column="duration" property="duration"/>
+            <result column="songCoverUrl" property="coverUrl"/>
+            <result column="audioUrl" property="audioUrl"/>
+            <result column="releaseTime" property="releaseTime"/>
+        </collection>
+        <collection property="comments" ofType="com.vibemusic.model.vo.CommentVO">
+            <id column="commentId" property="commentId"/>
+            <result column="username" property="username"/>
+            <result column="userAvatar" property="userAvatar"/>
+            <result column="content" property="content"/>
+            <result column="createTime" property="createTime"/>
+            <result column="likeCount" property="likeCount"/>
+        </collection>
+    </resultMap>
+
+    <!-- 查询歌单详情 -->
+    <select id="getPlaylistDetailById" resultMap="PlaylistDetailVOResultMap">
+        SELECT p.id           AS playlistId,
+               p.title        AS title,
+               p.cover_url    AS coverUrl,
+               p.introduction AS introduction,
+               pb.song_id     AS songId,
+               s.name         AS songName,
+               s.album        AS album,
+               s.duration     AS duration,
+               s.cover_url    AS songCoverUrl,
+               s.audio_url    AS audioUrl,
+               s.release_time AS releaseTime,
+               a.name         AS artistName,
+               c.id           AS commentId,
+               c.content      AS content,
+               c.create_time  AS createTime,
+               c.like_count   AS likeCount,
+               u.username     AS username,
+               u.user_avatar  AS userAvatar
+        FROM tb_playlist p
+                 LEFT JOIN tb_playlist_binding pb ON p.id = pb.playlist_id
+                 LEFT JOIN tb_song s ON pb.song_id = s.id
+                 LEFT JOIN tb_artist a ON s.artist_id = a.id
+                 LEFT JOIN tb_comment c ON p.id = c.playlist_id AND c.type = 1
+                 LEFT JOIN tb_user u ON c.user_id = u.id
+        WHERE p.id = #{playlistId}
+    </select>
+
+    <!-- 获取用户收藏歌单的风格 -->
+    <select id="getFavoritePlaylistStyles" resultType="java.lang.String">
+        SELECT style
+        FROM tb_playlist
+        WHERE id IN
+        <foreach item="id" collection="favoritePlaylistIds" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- 根据风格推荐歌单（排除已收藏歌单） -->
+    <select id="getRecommendedPlaylistsByStyles" resultType="com.vibemusic.model.vo.PlaylistVO">
+        SELECT *
+        FROM tb_playlist
+        WHERE style IN
+        <foreach item="style" collection="sortedStyleIds" open="(" separator="," close=")">
+            #{style}
+        </foreach>
+        AND id NOT IN
+        <foreach item="id" collection="favoritePlaylistIds" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        ORDER BY RAND()
+        LIMIT #{limit}
+    </select>
+
+    <!-- 根据歌单id列表查询歌单列表 -->
+    <select id="getPlaylistsByIds" resultType="com.vibemusic.model.vo.PlaylistVO">
+        SELECT
+        p.id AS playlistId,
+        p.title AS title,
+        p.cover_url AS coverUrl
+        FROM tb_playlist p
+        LEFT JOIN tb_user_favorite u ON p.id = u.playlist_id AND u.user_id = #{userId}
+        WHERE
+        <if test="playlistIds != null and playlistIds.size() > 0">
+            p.id IN
+            <foreach collection="playlistIds" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+        <if test="title != null and title.trim() != ''">
+            AND p.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="style != null and style.trim() != ''">
+            AND p.style LIKE CONCAT('%', #{style}, '%')
+        </if>
+        ORDER BY u.create_time DESC
+    </select>
+
+</mapper>

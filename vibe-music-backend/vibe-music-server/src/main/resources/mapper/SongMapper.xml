@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.vibemusic.mapper.SongMapper">
+
+    <!-- 定义 ResultMap -->
+    <resultMap id="SongDetailVOResultMap" type="com.vibemusic.model.vo.SongDetailVO">
+        <id column="songId" property="songId"/>
+        <result column="songName" property="songName"/>
+        <result column="artistName" property="artistName"/>
+        <result column="album" property="album"/>
+        <result column="lyric" property="lyric"/>
+        <result column="duration" property="duration"/>
+        <result column="songCoverUrl" property="coverUrl"/>
+        <result column="audioUrl" property="audioUrl"/>
+        <result column="releaseTime" property="releaseTime"/>
+        <collection property="comments" ofType="com.vibemusic.model.vo.CommentVO">
+            <id column="commentId" property="commentId"/>
+            <result column="username" property="username"/>
+            <result column="userAvatar" property="userAvatar"/>
+            <result column="content" property="content"/>
+            <result column="createTime" property="createTime"/>
+            <result column="likeCount" property="likeCount"/>
+        </collection>
+    </resultMap>
+
+    <!-- 查询歌曲详情 -->
+    <select id="getSongDetailById" resultMap="SongDetailVOResultMap">
+        SELECT s.id           AS songId,
+               s.name         AS songName,
+               s.album        AS album,
+               s.lyric        AS lyric,
+               s.duration     AS duration,
+               s.cover_url    AS songCoverUrl,
+               s.audio_url    AS audioUrl,
+               s.release_time AS releaseTime,
+               a.name         AS artistName,
+               c.id           AS commentId,
+               c.content      AS content,
+               c.create_time  AS createTime,
+               c.like_count   AS likeCount,
+               u.username     AS username,
+               u.user_avatar  AS userAvatar
+        FROM tb_song s
+                 LEFT JOIN tb_artist a ON s.artist_id = a.id
+                 LEFT JOIN tb_comment c ON s.id = c.song_id AND c.type = 0
+                 LEFT JOIN tb_user u ON c.user_id = u.id
+        WHERE s.id = #{songId}
+    </select>
+
+    <!-- 根据歌曲id列表查询歌曲列表 -->
+    <select id="getSongsByIds" resultType="com.vibemusic.model.vo.SongVO">
+        SELECT
+        s.id AS songId,
+        s.name AS songName,
+        s.album,
+        s.duration,
+        s.cover_url AS coverUrl,
+        s.audio_url AS audioUrl,
+        s.release_time AS releaseTime,
+        a.name AS artistName
+        FROM tb_song s
+        LEFT JOIN tb_artist a ON s.artist_id = a.id
+        LEFT JOIN tb_user_favorite u ON s.id = u.song_id
+        WHERE
+        <if test="songIds != null and songIds.size() > 0">
+            s.id IN
+            <foreach collection="songIds" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+        <if test="songName != null and songName.trim() != ''">
+            AND s.name LIKE CONCAT('%', #{songName}, '%')
+        </if>
+        <if test="artistName != null and artistName.trim() != ''">
+            AND a.name LIKE CONCAT('%', #{artistName}, '%')
+        </if>
+        <if test="album != null and album.trim() != ''">
+            AND s.album LIKE CONCAT('%', #{album}, '%')
+        </if>
+        ORDER BY u.create_time DESC
+    </select>
+
+    <!-- 根据用户收藏的歌曲id列表获取歌曲风格 -->
+    <select id="getFavoriteSongStyles" resultType="java.lang.Long">
+        SELECT g.style_id
+        FROM tb_genre g
+        WHERE g.song_id IN
+        <foreach item="item" collection="favoriteSongIds" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <!-- 根据用户收藏的歌曲id列表获取推荐歌曲 -->
+    <select id="getRecommendedSongsByStyles" resultType="com.vibemusic.model.vo.SongVO">
+        SELECT DISTINCT s.id AS songId, s.name AS songName, s.album,
+        s.duration, s.cover_url AS coverUrl, s.audio_url AS audioUrl,
+        s.release_time AS releaseTime, a.name AS artistName
+        FROM tb_song s
+        JOIN tb_genre g ON s.id = g.song_id
+        JOIN tb_style st ON g.style_id = st.id
+        LEFT JOIN tb_artist a ON s.artist_id = a.id
+        WHERE g.style_id IN
+        <foreach item="item" collection="sortedStyleIds" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        AND s.id NOT IN
+        <foreach item="item" collection="favoriteSongIds" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        ORDER BY s.release_time DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>
