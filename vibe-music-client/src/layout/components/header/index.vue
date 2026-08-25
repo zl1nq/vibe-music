@@ -45,9 +45,7 @@ watch(
 )
 </script>
 <template>
-  <header
-    class="px-5 py-2.5 border-b border-border flex items-center animate-fade-in-down [animation-delay:1.15s]"
-  >
+  <header class="px-5 py-2.5 border-b border-border flex items-center">
     <button
       class="flex relative w-60 items-center group"
       @click="router.push('/')"

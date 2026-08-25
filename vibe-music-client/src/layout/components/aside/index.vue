@@ -40,7 +40,7 @@ watch(
 
 <template>
   <aside
-    class="w-64 hidden h-full overflow-hidden md:block border-r border-border animate-fade-in-left [animation-delay:1.25s]"
+    class="w-64 hidden h-full overflow-hidden md:block border-r border-border"
   >
     <nav
       class="menu-nav flex flex-col p-4 space-y-5 flex-1 h-full box-border overflow-hidden"

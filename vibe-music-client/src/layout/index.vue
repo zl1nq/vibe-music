@@ -10,7 +10,6 @@ provide('audioPlayer', AudioPlayer())
 </script>
 <template>
   <!-- <BG /> -->
-  <SplashScreen />
   <div class="absolute w-full flex flex-col h-full">
     <div class="w-full flex flex-col h-full overflow-hidden bg-background">
       <Header />

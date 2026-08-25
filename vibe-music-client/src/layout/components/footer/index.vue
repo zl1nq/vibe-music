@@ -5,7 +5,7 @@ import Right from './components/right.vue'
 </script>
 <template>
   <footer
-    class="m-3 mt-0 rounded-2xl bg-white border border-border shadow-player flex items-center justify-between relative z-10 animate-fade-in [animation-delay:1.35s]"
+    class="m-3 mt-0 rounded-2xl bg-white border border-border shadow-player flex items-center justify-between relative z-10"
   >
     <!-- 左边：歌曲封面和歌曲名称 -->
     <Left />

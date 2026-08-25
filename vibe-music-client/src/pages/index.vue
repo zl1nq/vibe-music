@@ -157,7 +157,7 @@ const isCurrentPlaying = (songId: number) => {
   <div class="flex gap-6 px-8 py-6 w-full">
     <div class="flex-1 min-w-0">
       <!-- banner -->
-      <section class="w-full mb-12 animate-fade-up [animation-delay:1.45s]">
+      <section class="w-full mb-12" v-reveal>
         <el-carousel
           v-if="bannerList.length"
           :interval="4000"
@@ -172,7 +172,7 @@ const isCurrentPlaying = (songId: number) => {
       </section>
 
       <!-- 推荐歌单 -->
-      <section class="w-full mb-12 animate-fade-up [animation-delay:1.55s]">
+      <section class="w-full mb-12" v-reveal>
         <div
           class="flex justify-between items-end border-b border-border pb-4 mb-6"
         >
@@ -208,8 +208,8 @@ const isCurrentPlaying = (songId: number) => {
           <div
             v-for="(i, index) in recommendedPlaylist.slice(0, 5)"
             :key="i.playlistId"
-            class="group rounded-xl bg-card border border-border/60 shadow-paper cursor-pointer overflow-hidden transition-all duration-300 ease-out-soft hover:-translate-y-1 hover:shadow-paper-lg animate-fade-up"
-            :style="{ animationDelay: `${1.62 + index * 0.055}s` }"
+            class="group rounded-xl bg-card border border-border/60 shadow-paper cursor-pointer overflow-hidden transition-all duration-300 ease-out-soft hover:-translate-y-1 hover:shadow-paper-lg"
+            v-reveal="index * 70"
             @click="router.push(`/playlist/${i.playlistId}`)"
           >
             <div class="aspect-square overflow-hidden relative">
@@ -252,7 +252,7 @@ const isCurrentPlaying = (songId: number) => {
       </section>
 
       <!-- 推荐歌曲 -->
-      <section class="w-full animate-fade-up [animation-delay:1.75s]">
+      <section class="w-full" v-reveal>
         <div
           class="flex justify-between items-end border-b border-border pb-4 mb-6"
         >
@@ -292,10 +292,8 @@ const isCurrentPlaying = (songId: number) => {
             <div
               v-for="(item, index) in recommendedSongList"
               :key="item.id"
-              class="grid grid-cols-[auto_auto_2fr_1fr] items-center gap-4 p-2 transition-all duration-200 rounded-xl w-full group cursor-pointer animate-fade-up"
-              :style="{
-                animationDelay: `${1.82 + Math.min(index, 10) * 0.04}s`,
-              }"
+              class="grid grid-cols-[auto_auto_2fr_1fr] items-center gap-4 p-2 transition-all duration-200 rounded-xl w-full group cursor-pointer"
+              v-reveal="index * 40"
               :class="[
                 isCurrentPlaying(item.id)
                   ? 'bg-activeMenuBg'
