@@ -1,4 +1,9 @@
 spring:
+  ai:
+    dashscope:
+      api-key: ${vibe-music.ai.dashscope.api-key}
+    zhipuai:
+      api-key: ${vibe-music.ai.zhipuai.api-key}
   profiles:
     active: dev
 
