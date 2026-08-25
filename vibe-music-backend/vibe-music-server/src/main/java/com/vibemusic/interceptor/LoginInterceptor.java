@@ -60,18 +60,28 @@ public class LoginInterceptor implements HandlerInterceptor {
                 PathConstant.PLAYLIST_DETAIL_PATH,
                 PathConstant.ARTIST_DETAIL_PATH,
                 PathConstant.SONG_LIST_PATH,
-                PathConstant.SONG_DETAIL_PATH
+                PathConstant.SONG_DETAIL_PATH,
+                PathConstant.AGENT_PATH
         );
 
         // 检查路径是否匹配
         boolean isAllowedPath = allowedPaths.stream()
                 .anyMatch(pattern -> pathMatcher.match(pattern, path));
 
-        if (token == null || token.isEmpty()) {
-            if (isAllowedPath) {
-                return true; // 允许未登录用户访问这些路径
+        // 公开路径对所有用户（含已登录）放行，避免角色权限前缀匹配不到而返回 403
+        if (isAllowedPath) {
+            // 仍尝试解析 token，以便在需要时提供用户态上下文（如收藏状态），无效则按匿名处理
+            if (token != null && !token.isEmpty()) {
+                try {
+                    ThreadLocalUtil.set(JwtUtil.parseToken(token));
+                } catch (Exception ignored) {
+                    // token 无效视为匿名用户
+                }
             }
+            return true;
+        }
 
+        if (token == null || token.isEmpty()) {
             sendErrorResponse(response, 401, MessageConstant.NOT_LOGIN); // 缺少令牌
             return false;
         }

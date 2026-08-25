@@ -4,6 +4,7 @@ import Aside from './components/aside/index.vue'
 import Main from './components/main/index.vue'
 import Footer from './components/footer/index.vue'
 // import BG from './components/bg/index.vue'
+import AgentChat from '@/components/Agent/AgentChat.vue'
 import { AudioPlayer } from '@/hooks/useAudioPlayer'
 
 provide('audioPlayer', AudioPlayer())
@@ -19,5 +20,7 @@ provide('audioPlayer', AudioPlayer())
       </div>
       <Footer />
     </div>
+    <!-- 全局悬浮的 VibeAgent 聊天窗 -->
+    <AgentChat />
   </div>
 </template>

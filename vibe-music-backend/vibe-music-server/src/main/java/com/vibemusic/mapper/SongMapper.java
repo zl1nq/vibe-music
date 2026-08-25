@@ -91,6 +91,29 @@ public interface SongMapper extends BaseMapper<Song> {
             """)
     List<SongVO> getRandomSongsWithArtist();
 
+    // 按关键词搜索歌曲（关键词命中歌名/歌手/专辑任一即可，OR 逻辑）
+    @Select("""
+                SELECT 
+                    s.id AS songId, 
+                    s.name AS songName, 
+                    s.album, 
+                    s.duration, 
+                    s.cover_url AS coverUrl, 
+                    s.audio_url AS audioUrl, 
+                    s.release_time AS releaseTime, 
+                    a.name AS artistName
+                FROM tb_song s
+                LEFT JOIN tb_artist a ON s.artist_id = a.id
+                WHERE #{keyword} IS NOT NULL AND #{keyword} <> ''
+                  AND (s.name LIKE CONCAT('%', #{keyword}, '%')
+                       OR a.name LIKE CONCAT('%', #{keyword}, '%')
+                       OR s.album LIKE CONCAT('%', #{keyword}, '%'))
+                ORDER BY s.release_time DESC
+                LIMIT #{limit}
+            """)
+    List<SongVO> searchSongsByKeyword(@Param("keyword") String keyword,
+                                      @Param("limit") int limit);
+
     // 根据id获取歌曲详情
     SongDetailVO getSongDetailById(Long songId);
 
