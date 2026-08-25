@@ -80,7 +80,7 @@ role-path-permissions:
       - "/feedback/"
 
 minio:
-  endpoint: ${vibe-music.minio.endpoint} # 修改你的 MinIO 端点
+  endpoint: ${vibe-music.minio.endpoint} # 修改你的 MinIO 端点,例如http://localhost:9000
   accessKey: ${vibe-music.minio.accessKey} # 修改你的 MinIO Access Key
   secretKey: ${vibe-music.minio.secretKey} # 修改你的 MinIO Secret Key
   bucket: ${vibe-music.minio.bucket} # 确认 Bucket 名称与你创建的一致

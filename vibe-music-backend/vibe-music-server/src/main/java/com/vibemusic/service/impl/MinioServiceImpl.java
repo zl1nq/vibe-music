@@ -5,6 +5,7 @@ import com.vibemusic.service.MinioService;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,6 +14,7 @@ import java.io.InputStream;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class MinioServiceImpl implements MinioService {
 
     private final MinioClient minioClient;
@@ -38,8 +40,9 @@ public class MinioServiceImpl implements MinioService {
     public String uploadFile(MultipartFile file, String folder) {
         try {
             // 生成唯一文件名
-            String fileName = folder + "/" + UUID.randomUUID() + "-" + file.getOriginalFilename();
 
+            String fileName = folder + "/" + UUID.randomUUID() + "-" + file.getOriginalFilename();
+            log.info("上传文件: {}", fileName);
             // 获取文件流
             InputStream inputStream = file.getInputStream();
 
@@ -54,6 +57,7 @@ public class MinioServiceImpl implements MinioService {
             );
 
             // 返回可访问的 URL
+
             return endpoint + "/" + bucketName + "/" + fileName;
 
         } catch (Exception e) {
@@ -68,10 +72,11 @@ public class MinioServiceImpl implements MinioService {
      */
     @Override
     public void deleteFile(String fileUrl) {
+
         try {
             // 解析 URL，获取文件路径
             String filePath = fileUrl.replace(endpoint + "/" + bucketName + "/", "");
-
+            log.info("删除文件: {}", filePath);
             // 删除文件
             minioClient.removeObject(
                     RemoveObjectArgs.builder()

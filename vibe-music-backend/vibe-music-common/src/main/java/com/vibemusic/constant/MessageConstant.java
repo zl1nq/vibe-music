@@ -55,5 +55,7 @@ public class MessageConstant {
     public static final String USER_STATUS_INVALID = "用户状态无效";
     public static final String BANNER_STATUS_INVALID = "轮播图状态无效";
 
+    public static final String SINGER_IS_NULL = "请选择歌手";
+
     public static final String FILE_UPLOAD = "文件上传";
 }

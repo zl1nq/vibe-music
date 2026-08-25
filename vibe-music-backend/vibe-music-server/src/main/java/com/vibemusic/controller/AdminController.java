@@ -12,6 +12,7 @@ import com.vibemusic.result.Result;
 import com.vibemusic.service.*;
 import com.vibemusic.util.BindingResultUtil;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +29,7 @@ import java.util.List;
  * @author sunpingli
  * @since 2025-01-09
  */
+@Slf4j
 @RestController
 @RequestMapping("/admin")
 public class AdminController {
@@ -343,7 +345,10 @@ public class AdminController {
      */
     @PatchMapping("/updateSongAudio/{id}")
     public Result updateSongAudio(@PathVariable("id") Long songId, @RequestParam("audio") MultipartFile audio, @RequestParam("duration") String duration) {
-        String audioUrl = minioService.uploadFile(audio, "songs");  // 上传到 songs 目录
+        // 上传到 songs 目录
+        String audioUrl = minioService.uploadFile(audio, "songs");
+        log.info("音频文件成功上传到minio: {}", audioUrl);
+        log.info("更新数据库中歌曲音频的相关记录: {}", songId);
         return songService.updateSongAudio(songId, audioUrl, duration);
     }
 

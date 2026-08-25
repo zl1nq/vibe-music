@@ -30,6 +30,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
@@ -215,7 +216,9 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
             List<SongVO> randomSongs = songMapper.getRandomSongsWithArtist();
             Set<Long> addedSongIds = recommendedSongs.stream().map(SongVO::getSongId).collect(Collectors.toSet());
             for (SongVO song : randomSongs) {
-                if (recommendedSongs.size() >= 20) break;
+                if (recommendedSongs.size() >= 20){
+                    break;
+                }
                 if (!addedSongIds.contains(song.getSongId())) {
                     recommendedSongs.add(song);
                 }
@@ -294,6 +297,14 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
     @Override
     @CacheEvict(cacheNames = "songCache", allEntries = true)
     public Result addSong(SongAddDTO songAddDTO) {
+        if (songAddDTO == null) {
+            return Result.error(MessageConstant.ERROR);
+        }
+
+        //兜底：判断歌手是否存在，若不存在则返回空列表
+        if (songAddDTO.getArtistId() == null || songAddDTO.getArtistId() <= 0L) {
+            return Result.error(MessageConstant.SINGER_IS_NULL);
+        }
         Song song = new Song();
         BeanUtils.copyProperties(songAddDTO, song);
 
@@ -417,9 +428,11 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
     @Override
     @CacheEvict(cacheNames = "songCache", allEntries = true)
     public Result updateSongAudio(Long songId, String audioUrl, String duration) {
+
         Song song = songMapper.selectById(songId);
         String audio = song.getAudioUrl();
         if (audio != null && !audio.isEmpty()) {
+
             minioService.deleteFile(audio);
         }
 
