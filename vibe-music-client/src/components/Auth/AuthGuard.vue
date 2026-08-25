@@ -27,4 +27,4 @@ const handleLoginSuccess = () => {
 <template>
   <slot v-if="userStore.isLoggedIn"></slot>
   <AuthTabs v-model="authVisible" @success="handleLoginSuccess" />
-</template> 
+</template>

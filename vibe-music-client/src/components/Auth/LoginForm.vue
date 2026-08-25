@@ -67,17 +67,33 @@ function switchToReset() {
 </script>
 
 <template>
-  <div class="login-container">
+  <div class="auth-container">
     <p class="form-subtitle">输入您的邮箱以登录您的账户</p>
 
-    <el-form ref="loginFormRef" :model="loginForm" :rules="loginRules" label-width="0" size="large"
-      @keyup.enter="handleLogin">
+    <el-form
+      ref="loginFormRef"
+      :model="loginForm"
+      :rules="loginRules"
+      label-width="0"
+      size="large"
+      @keyup.enter="handleLogin"
+    >
       <el-form-item prop="email">
-        <el-input v-model="loginForm.email" placeholder="邮箱" :prefix-icon="Message" />
+        <el-input
+          v-model="loginForm.email"
+          placeholder="邮箱"
+          :prefix-icon="Message"
+        />
       </el-form-item>
 
       <el-form-item prop="password" class="mt-6">
-        <el-input v-model="loginForm.password" type="password" placeholder="密码" :prefix-icon="Lock" show-password />
+        <el-input
+          v-model="loginForm.password"
+          type="password"
+          placeholder="密码"
+          :prefix-icon="Lock"
+          show-password
+        />
       </el-form-item>
 
       <div class="forgot-password">
@@ -85,77 +101,20 @@ function switchToReset() {
       </div>
 
       <el-form-item class="mt-6">
-        <el-button class="submit-btn" type="primary" :loading="loading" @click="handleLogin">
+        <el-button
+          class="submit-btn"
+          type="primary"
+          :loading="loading"
+          @click="handleLogin"
+        >
           登录
         </el-button>
       </el-form-item>
     </el-form>
 
-    <p class="signup-text">
+    <p class="auth-link-text">
       没有账户？
       <a href="#" @click.prevent="switchToRegister">注册</a>
     </p>
   </div>
 </template>
-
-<style scoped>
-.login-container {
-  width: 100%;
-  max-width: 400px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.form-subtitle {
-  color: #666;
-  margin-bottom: 24px;
-  font-size: 14px;
-}
-
-:deep(.el-form-item) {
-  margin-bottom: 20px;
-}
-
-:deep(.el-input__wrapper) {
-  border-radius: 8px;
-}
-
-.submit-btn {
-  width: 100%;
-  border-radius: 8px;
-  height: 40px;
-  font-size: 16px;
-}
-
-.signup-text {
-  text-align: center;
-  margin-top: 16px;
-  color: #666;
-}
-
-.signup-text a {
-  color: #2a68fa;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.signup-text a:hover {
-  text-decoration: underline;
-}
-
-.forgot-password {
-  text-align: right;
-  margin: -10px 0 10px;
-}
-
-.forgot-password a {
-  color: #666;
-  font-size: 14px;
-  text-decoration: none;
-}
-
-.forgot-password a:hover {
-  color: #2a68fa;
-  text-decoration: underline;
-}
-</style>

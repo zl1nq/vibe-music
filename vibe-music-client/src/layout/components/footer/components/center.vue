@@ -35,7 +35,7 @@ const currentSongLikeStatus = computed(() => {
 // 更新所有相同歌曲的喜欢状态
 const updateAllSongLikeStatus = (songId: number, status: number) => {
   // 更新播放列表中的状态
-  audioStore.trackList.forEach(track => {
+  audioStore.trackList.forEach((track) => {
     if (Number(track.id) === songId) {
       track.likeStatus = status
     }
@@ -43,7 +43,7 @@ const updateAllSongLikeStatus = (songId: number, status: number) => {
 
   // 更新当前页面的歌曲列表状态
   if (audioStore.currentPageSongs) {
-    audioStore.currentPageSongs.forEach(song => {
+    audioStore.currentPageSongs.forEach((song) => {
       if (song.songId === songId) {
         song.likeStatus = status
       }
@@ -52,7 +52,9 @@ const updateAllSongLikeStatus = (songId: number, status: number) => {
 
   // 更新曲库页面的数据
   if (route.path === '/library' && libraryStore.tableData?.items) {
-    const song = libraryStore.tableData.items.find(song => song.songId === songId)
+    const song = libraryStore.tableData.items.find(
+      (song) => song.songId === songId
+    )
     if (song) {
       song.likeStatus = status
     }
@@ -62,7 +64,9 @@ const updateAllSongLikeStatus = (songId: number, status: number) => {
   if (route.path.startsWith('/artist/')) {
     const artistStore = useArtistStore()
     if (artistStore.artistInfo?.songs) {
-      const song = artistStore.artistInfo.songs.find(song => song.songId === songId)
+      const song = artistStore.artistInfo.songs.find(
+        (song) => song.songId === songId
+      )
       if (song) {
         song.likeStatus = status
       }
@@ -73,7 +77,7 @@ const updateAllSongLikeStatus = (songId: number, status: number) => {
   if (route.path.startsWith('/playlist/')) {
     const playlistStore = usePlaylistStore()
     if (playlistStore.songs) {
-      const song = playlistStore.songs.find(song => song.songId === songId)
+      const song = playlistStore.songs.find((song) => song.songId === songId)
       if (song) {
         song.likeStatus = status
       }
@@ -123,31 +127,37 @@ const handleLike = async () => {
     <div class="flex items-center mr-2">
       <button
         @click="prevTrack"
-        class="p-2 rounded-full hover:bg-hoverMenuBg transition"
+        class="p-2 rounded-full hover:bg-hoverMenuBg hover:text-primary transition-all duration-200 hover:scale-110 active:scale-95"
       >
         <icon-solar:skip-previous-bold class="text-lg" />
       </button>
       <button
         @click="togglePlayPause"
-        class="p-2 rounded-full hover:bg-hoverMenuBg transition"
+        class="p-1.5 rounded-full transition-all duration-200 ease-spring hover:scale-110 active:scale-95"
       >
         <Icon
           :icon="
             isPlaying ? 'ic:round-pause-circle' : 'material-symbols:play-circle'
           "
-          class="text-5xl"
-          :color="'#2a68fa'"
+          class="text-5xl drop-shadow-sm"
+          :color="'var(--primary)'"
         />
       </button>
       <button
         @click="nextTrack"
-        class="p-2 rounded-full hover:bg-hoverMenuBg transition"
+        class="p-2 rounded-full hover:bg-hoverMenuBg hover:text-primary transition-all duration-200 hover:scale-110 active:scale-95"
       >
         <icon-solar:skip-previous-bold class="transform scale-x-[-1] text-lg" />
       </button>
-      <button class="p-2 rounded-full hover:bg-hoverMenuBg transition" @click="handleLike">
-        <icon-mdi:cards-heart-outline v-if="currentSongLikeStatus === 0" class="text-lg" />
-        <icon-mdi:cards-heart v-else class="text-lg text-red-500" />
+      <button
+        class="p-2 rounded-full hover:bg-hoverMenuBg transition-all duration-200 hover:scale-110 active:scale-95"
+        @click="handleLike"
+      >
+        <icon-mdi:cards-heart-outline
+          v-if="currentSongLikeStatus === 0"
+          class="text-lg"
+        />
+        <icon-mdi:cards-heart v-else class="text-lg text-primary" />
       </button>
     </div>
     <div class="w-full flex items-center space-x-2">
@@ -160,9 +170,13 @@ const handleLike = async () => {
         class="w-full"
         size="small"
       />
-      <span class="text-xs">{{ formatTime(currentTime) }}</span>
-      <span> / </span>
-      <span class="text-xs">{{ formatTime(duration) }}</span>
+      <span class="text-xs text-muted-foreground tabular-nums">{{
+        formatTime(currentTime)
+      }}</span>
+      <span class="text-muted-foreground"> / </span>
+      <span class="text-xs text-muted-foreground tabular-nums">{{
+        formatTime(duration)
+      }}</span>
     </div>
   </div>
 </template>

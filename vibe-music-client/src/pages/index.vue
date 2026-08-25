@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import { getRecommendedPlaylists, getRecommendedSongs, getBanner } from '@/api/system'
+import {
+  getRecommendedPlaylists,
+  getRecommendedSongs,
+  getBanner,
+} from '@/api/system'
 import coverImg from '@/assets/cover.png'
 import { formatTime, replaceUrlParams } from '@/utils'
 import { ElNotification } from 'element-plus'
@@ -8,7 +12,7 @@ const router = useRouter()
 const audio = AudioStore()
 const user = UserStore()
 
-const { loadTrack, play } = useAudioPlayer()
+const { loadTrack, play, isPlaying } = useAudioPlayer()
 
 const bannerList = ref<{ bannerId: number; bannerUrl: string }[]>([])
 
@@ -97,7 +101,7 @@ const handleRefreshSongs = async () => {
       },
       duration: item.duration,
       audioUrl: item.audioUrl,
-      likeStatus: item.likeStatus || 0  // 从服务端获取收藏状态
+      likeStatus: item.likeStatus || 0, // 从服务端获取收藏状态
     }))
   } else {
     ElNotification({
@@ -118,18 +122,20 @@ const convertToTrackModel = (song: any) => {
     cover: song.album.picUrl || '',
     url: song.audioUrl,
     duration: song.duration,
-    likeStatus: song.likeStatus || 0  // 保持收藏状态
+    likeStatus: song.likeStatus || 0, // 保持收藏状态
   }
 }
 
 const handlePlaylclick = async (row: any) => {
   // 将所有推荐歌曲转换为 trackModel
   const allTracks = recommendedSongList.value
-    .map(song => convertToTrackModel(song))
-    .filter(track => track !== null)
+    .map((song) => convertToTrackModel(song))
+    .filter((track) => track !== null)
 
   // 找到当前选中歌曲的索引
-  const selectedIndex = recommendedSongList.value.findIndex(song => song.id === row.id)
+  const selectedIndex = recommendedSongList.value.findIndex(
+    (song) => song.id === row.id
+  )
 
   // 清空现有播放列表并添加所有歌曲
   audio.setAudioStore('trackList', allTracks)
@@ -148,95 +154,222 @@ const isCurrentPlaying = (songId: number) => {
 }
 </script>
 <template>
-  <div class="flex gap-6 p-4 w-full">
-    <div class="flex-1">
-      <div class="w-full flex flex-col overflow-hidden mb-8">
-        <!-- banner -->
-        <el-carousel :interval="4000" type="card" height="260px">
+  <div class="flex gap-6 px-8 py-6 w-full">
+    <div class="flex-1 min-w-0">
+      <!-- banner -->
+      <section class="w-full mb-12 animate-fade-up [animation-delay:1.45s]">
+        <el-carousel
+          v-if="bannerList.length"
+          :interval="4000"
+          type="card"
+          height="280px"
+        >
           <el-carousel-item v-for="item in bannerList" :key="item.bannerId">
-            <img :src="item.bannerUrl" class="w-full h-full object-cover rounded-lg" />
+            <img :src="item.bannerUrl" class="w-full h-full object-cover" />
           </el-carousel-item>
         </el-carousel>
+        <div v-else class="h-[280px] rounded-xl bg-muted animate-pulse"></div>
+      </section>
 
-        <!-- 推荐 -->
-        <button class="mt-6">
-          <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold">今日为你推荐</h2>
-            <button @click="router.push('/playlist')"
-              class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 text-primary underline-offset-4 hover:underline h-10 px-4 py-2">
-              <icon-hugeicons:more class="text-lg" />
-              更多
-            </button>
+      <!-- 推荐歌单 -->
+      <section class="w-full mb-12 animate-fade-up [animation-delay:1.55s]">
+        <div
+          class="flex justify-between items-end border-b border-border pb-4 mb-6"
+        >
+          <div>
+            <p
+              class="text-[10px] font-semibold tracking-[0.3em] text-primary mb-1.5"
+            >
+              WEEKLY SELECTION
+            </p>
+            <h2
+              class="text-2xl font-bold font-serif-display tracking-tight flex items-baseline gap-3"
+            >
+              今日为你推荐
+              <span
+                class="text-[11px] font-sans font-normal tracking-[0.2em] text-muted-foreground"
+                >No.01</span
+              >
+            </h2>
           </div>
-          <div class="grid grid-cols-4 md:grid-cols-7 gap-4">
-            <div
-              class="rounded-2xl transition duration-300 hover:bg-hoverMenuBg bg-card text-card-foreground border-0 shadow-nonec cursor-pointer"
-              v-for="i in recommendedPlaylist.slice(0, 7)" :key="i.playlistId"
-              @click="router.push(`/playlist/${i.playlistId}`)">
-              <div class="p-0">
-                <div class="aspect-square rounded-t-2xl overflow-hidden">
-                  <img :alt="i.title" loading="lazy" width="200" height="200" class="w-full h-full object-cover" :src="replaceUrlParams(i.coverUrl ?? coverImg, 'param=350y350')
-                    " />
-                  />
-                </div>
-                <div class="flex flex-col p-2">
-                  <h3 class="line-clamp-2 font-medium mb-1 playlist-title">
-                    {{ i.title }}
-                  </h3>
-                </div>
-              </div>
-            </div>
-          </div>
-        </button>
-      </div>
-
-      <!-- 歌曲 -->
-      <div class="w-full">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-semibold mb-4">相似推荐</h2>
-          <button @click="handleRefreshSongs()"
-            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 text-primary underline-offset-4 hover:underline h-10 px-4 py-2">
-            <icon-tabler:refresh class="text-lg" />
-            刷新
+          <button
+            @click="router.push('/playlist')"
+            class="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-200"
+          >
+            更多
+            <icon-hugeicons:more class="text-base" />
           </button>
         </div>
-        <el-scrollbar class="h-full" overflow-auto>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 gap-x-16">
-            <button v-for="item in recommendedSongList" :key="item.id"
-              class="grid grid-cols-[auto_2fr_1fr] items-center gap-4 transition duration-300 rounded-2xl w-full group"
+
+        <div
+          v-if="recommendedPlaylist.length"
+          class="grid grid-cols-3 md:grid-cols-5 gap-5"
+        >
+          <div
+            v-for="(i, index) in recommendedPlaylist.slice(0, 5)"
+            :key="i.playlistId"
+            class="group rounded-xl bg-card border border-border/60 shadow-paper cursor-pointer overflow-hidden transition-all duration-300 ease-out-soft hover:-translate-y-1 hover:shadow-paper-lg animate-fade-up"
+            :style="{ animationDelay: `${1.62 + index * 0.055}s` }"
+            @click="router.push(`/playlist/${i.playlistId}`)"
+          >
+            <div class="aspect-square overflow-hidden relative">
+              <img
+                :alt="i.title"
+                loading="lazy"
+                class="w-full h-full object-cover transition-transform duration-500 ease-out-soft group-hover:scale-105"
+                :src="replaceUrlParams(i.coverUrl ?? coverImg, 'param=350y350')"
+              />
+              <div
+                class="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors duration-300"
+              ></div>
+              <div
+                class="absolute bottom-2.5 right-2.5 w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center opacity-0 translate-y-1.5 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 ease-spring shadow-lg pointer-events-none"
+              >
+                <icon-tabler:player-play-filled class="text-sm ml-0.5" />
+              </div>
+            </div>
+            <div class="p-3">
+              <h3 class="line-clamp-2 text-sm font-medium playlist-title">
+                {{ i.title }}
+              </h3>
+            </div>
+          </div>
+        </div>
+        <!-- 加载态：纸感骨架 -->
+        <div v-else class="grid grid-cols-3 md:grid-cols-5 gap-5">
+          <div
+            v-for="n in 5"
+            :key="n"
+            class="rounded-xl bg-card border border-border/60 overflow-hidden"
+          >
+            <div class="aspect-square w-full bg-muted animate-pulse"></div>
+            <div class="p-3 space-y-2">
+              <div class="h-3.5 w-4/5 rounded bg-muted animate-pulse"></div>
+              <div class="h-3 w-1/2 rounded bg-muted animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 推荐歌曲 -->
+      <section class="w-full animate-fade-up [animation-delay:1.75s]">
+        <div
+          class="flex justify-between items-end border-b border-border pb-4 mb-6"
+        >
+          <div>
+            <p
+              class="text-[10px] font-semibold tracking-[0.3em] text-primary mb-1.5"
+            >
+              FOR YOUR TASTE
+            </p>
+            <h2
+              class="text-2xl font-bold font-serif-display tracking-tight flex items-baseline gap-3"
+            >
+              相似推荐
+              <span
+                class="text-[11px] font-sans font-normal tracking-[0.2em] text-muted-foreground"
+                >No.02</span
+              >
+            </h2>
+          </div>
+          <button
+            @click="handleRefreshSongs()"
+            class="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-200 group/refresh"
+          >
+            刷新
+            <icon-tabler:refresh
+              class="text-base transition-transform duration-500 group-hover/refresh:rotate-180"
+            />
+          </button>
+        </div>
+
+        <el-scrollbar
+          v-if="recommendedSongList.length"
+          class="h-full"
+          overflow-auto
+        >
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-1">
+            <div
+              v-for="(item, index) in recommendedSongList"
+              :key="item.id"
+              class="grid grid-cols-[auto_auto_2fr_1fr] items-center gap-4 p-2 transition-all duration-200 rounded-xl w-full group cursor-pointer animate-fade-up"
+              :style="{
+                animationDelay: `${1.82 + Math.min(index, 10) * 0.04}s`,
+              }"
               :class="[
-                isCurrentPlaying(item.id) ? 'bg-hoverMenuBg' : 'hover:bg-hoverMenuBg'
-              ]" @click.stop="handlePlaylclick(item)">
+                isCurrentPlaying(item.id)
+                  ? 'bg-activeMenuBg'
+                  : 'hover:bg-hoverMenuBg',
+              ]"
+              @click.stop="handlePlaylclick(item)"
+            >
+              <!-- 序号 -->
+              <span
+                class="text-xs font-serif-display text-muted-foreground w-6 text-right tabular-nums"
+              >
+                {{ String(index + 1).padStart(2, '0') }}
+              </span>
               <!-- 专辑封面 -->
-              <div class="w-16 h-16 rounded-2xl overflow-hidden relative">
-                <el-image :alt="item.name" width="64" height="64" class="w-full h-full object-cover"
-                  :src="item.album.picUrl + '?param=90y90'" />
+              <div
+                class="w-14 h-14 rounded-lg overflow-hidden relative flex-shrink-0"
+              >
+                <el-image
+                  :alt="item.name"
+                  class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  :src="item.album.picUrl + '?param=90y90'"
+                />
                 <!-- Play 按钮，使用 group-hover 控制透明度 -->
-                <button @click.stop="handlePlaylclick(item)"
-                  class="absolute inset-0 flex items-center justify-center text-white opacity-0 transition-opacity duration-300 z-10 group-hover:opacity-100 group-hover:bg-black/50">
+                <button
+                  @click.stop="handlePlaylclick(item)"
+                  class="absolute inset-0 flex items-center justify-center text-white opacity-0 transition-opacity duration-300 z-10 group-hover:opacity-100 group-hover:bg-black/50"
+                >
                   <icon-tabler:player-play-filled class="text-lg" />
                 </button>
               </div>
 
               <div class="truncate text-left ml-1">
                 <!-- 歌曲名称 -->
-                <h3 class="font-medium">{{ item.name }}</h3>
+                <h3
+                  class="font-medium flex items-center gap-2"
+                  :class="isCurrentPlaying(item.id) ? 'text-primary' : ''"
+                >
+                  <span class="truncate">{{ item.name }}</span>
+                  <PlayingIndicator
+                    v-if="isCurrentPlaying(item.id)"
+                    :paused="!isPlaying"
+                    class="flex-shrink-0 scale-75 origin-left"
+                  />
+                </h3>
                 <!-- 艺术家 -->
                 <p class="text-sm text-muted-foreground line-clamp-1">
-                  {{item.artists.map((item) => item.name).join(' ')}}
+                  {{ item.artists.map((item) => item.name).join(' ') }}
                 </p>
               </div>
 
               <!-- 时长 -->
-              <div class="text-right mr-5">
-                <p class="text-sm text-muted-foreground line-clamp-1">
+              <div class="text-right mr-3">
+                <p
+                  class="text-sm text-muted-foreground line-clamp-1 tabular-nums"
+                >
                   {{ formatTime(item.duration) }}
                 </p>
               </div>
-            </button>
+            </div>
           </div>
         </el-scrollbar>
-      </div>
+        <!-- 加载态：纸感骨架 -->
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-1">
+          <div v-for="n in 8" :key="n" class="flex items-center gap-4 p-2">
+            <div
+              class="w-14 h-14 rounded-lg bg-muted animate-pulse flex-shrink-0"
+            ></div>
+            <div class="flex-1 space-y-2">
+              <div class="h-3.5 w-3/5 rounded bg-muted animate-pulse"></div>
+              <div class="h-3 w-2/5 rounded bg-muted animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 </template>
@@ -252,8 +385,7 @@ const isCurrentPlaying = (songId: number) => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 20px;
-  /* 圆角 */
+  border-radius: 12px;
 }
 
 .playlist-title {
@@ -268,8 +400,5 @@ const isCurrentPlaying = (songId: number) => {
   /* 行高 */
   overflow: hidden;
   text-overflow: ellipsis;
-  display: flex;
-  align-items: center;
-  /* 单行时垂直居中 */
 }
 </style>

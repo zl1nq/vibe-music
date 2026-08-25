@@ -124,15 +124,28 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="reset-container">
+  <div class="auth-container">
     <p class="form-subtitle">我们将向您的邮箱发送验证码以重置密码</p>
 
-    <el-form ref="resetFormRef" :model="resetForm" :rules="resetRules" label-width="0" size="large"
-      @keyup.enter="handleReset">
+    <el-form
+      ref="resetFormRef"
+      :model="resetForm"
+      :rules="resetRules"
+      label-width="0"
+      size="large"
+      @keyup.enter="handleReset"
+    >
       <el-form-item prop="email">
-        <el-input v-model="resetForm.email" placeholder="邮箱" :prefix-icon="Message">
+        <el-input
+          v-model="resetForm.email"
+          placeholder="邮箱"
+          :prefix-icon="Message"
+        >
           <template #append>
-            <el-button :disabled="!!countdown || loading" @click="handleSendCode">
+            <el-button
+              :disabled="!!countdown || loading"
+              @click="handleSendCode"
+            >
               {{ countdown ? `${countdown}s后重试` : '获取验证码' }}
             </el-button>
           </template>
@@ -140,74 +153,48 @@ onUnmounted(() => {
       </el-form-item>
 
       <el-form-item prop="verificationCode" class="mt-6">
-        <el-input v-model="resetForm.verificationCode" placeholder="验证码" :prefix-icon="Key" />
+        <el-input
+          v-model="resetForm.verificationCode"
+          placeholder="验证码"
+          :prefix-icon="Key"
+        />
       </el-form-item>
 
       <el-form-item prop="newPassword" class="mt-6">
-        <el-input v-model="resetForm.newPassword" type="password" placeholder="新密码" :prefix-icon="Lock" show-password />
+        <el-input
+          v-model="resetForm.newPassword"
+          type="password"
+          placeholder="新密码"
+          :prefix-icon="Lock"
+          show-password
+        />
       </el-form-item>
 
       <el-form-item prop="repeatPassword" class="mt-6">
-        <el-input v-model="resetForm.repeatPassword" type="password" placeholder="确认密码" :prefix-icon="Lock"
-          show-password />
+        <el-input
+          v-model="resetForm.repeatPassword"
+          type="password"
+          placeholder="确认密码"
+          :prefix-icon="Lock"
+          show-password
+        />
       </el-form-item>
 
       <el-form-item class="mt-6">
-        <el-button class="submit-btn" type="primary" :loading="loading" @click="handleReset">
+        <el-button
+          class="submit-btn"
+          type="primary"
+          :loading="loading"
+          @click="handleReset"
+        >
           重置密码
         </el-button>
       </el-form-item>
     </el-form>
 
-    <p class="login-text">
+    <p class="auth-link-text">
       记起密码了？
       <a href="#" @click.prevent="switchToLogin">返回登录</a>
     </p>
   </div>
 </template>
-
-<style scoped>
-.reset-container {
-  width: 100%;
-  max-width: 400px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.form-subtitle {
-  color: #666;
-  margin-bottom: 24px;
-  font-size: 14px;
-}
-
-:deep(.el-form-item) {
-  margin-bottom: 20px;
-}
-
-:deep(.el-input__wrapper) {
-  border-radius: 8px;
-}
-
-.submit-btn {
-  width: 100%;
-  border-radius: 8px;
-  height: 40px;
-  font-size: 16px;
-}
-
-.login-text {
-  text-align: center;
-  margin-top: 16px;
-  color: #666;
-}
-
-.login-text a {
-  color: #2a68fa;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.login-text a:hover {
-  text-decoration: underline;
-}
-</style>

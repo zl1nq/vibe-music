@@ -1,0 +1,92 @@
+/* 认证弹窗共享样式（登录/注册/重置密码） */
+
+.auth-container {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.form-subtitle {
+  color: hsl(30 8% 45%);
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+
+.auth-container .el-form-item {
+  margin-bottom: 20px;
+}
+
+.submit-btn {
+  width: 100%;
+  border-radius: 10px;
+  height: 42px;
+  font-size: 16px;
+  letter-spacing: 0.15em;
+}
+
+.auth-link-text {
+  text-align: center;
+  margin-top: 16px;
+  color: hsl(30 8% 45%);
+  font-size: 14px;
+}
+
+.auth-link-text a {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-link-text a:hover {
+  text-decoration: underline;
+}
+
+.forgot-password {
+  text-align: right;
+  margin: -10px 0 10px;
+}
+
+.forgot-password a {
+  color: hsl(30 8% 45%);
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.forgot-password a:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+/* 胶囊式 Tabs */
+.auth-tabs .el-tabs__nav-wrap::after {
+  display: none;
+}
+
+.auth-tabs .el-tabs__nav {
+  background-color: #f4efe6;
+  border-radius: 12px;
+  padding: 4px;
+}
+
+.auth-tabs .el-tabs__item {
+  border-radius: 8px;
+  height: 36px;
+  line-height: 36px;
+  color: hsl(30 8% 45%);
+}
+
+.auth-tabs .el-tabs__item.is-active {
+  background-color: #ffffff;
+  color: var(--primary);
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgb(60 40 20 / 0.1);
+}
+
+.auth-tabs .el-tabs__active-bar {
+  display: none;
+}
+
+.auth-tabs .el-tabs__header {
+  margin-bottom: 8px;
+}

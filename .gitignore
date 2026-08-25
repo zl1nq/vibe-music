@@ -4,3 +4,5 @@ others
 ### Test ###
 **/src/test
 *.drawio
+.zcode
+docs/*

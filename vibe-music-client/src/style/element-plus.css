@@ -1,32 +1,182 @@
 :root {
     --el-color-primary: var(--primary);
+    --el-color-primary-light-3: #ff826d;
+    --el-color-primary-light-5: #ffa697;
+    --el-color-primary-light-7: #ffcac0;
+    --el-color-primary-light-8: #ffdbd5;
+    --el-color-primary-light-9: #ffedea;
+    --el-color-primary-dark-2: #cc3e25;
     --el-fill-color-blank: hsl(var(--background));
-  }
+    --el-border-radius-base: 10px;
+    --el-border-radius-small: 8px;
+}
 
 html.dark {
     /* 自定义深色背景颜色 */
     --el-color-primary: var(--primary);
+    --el-color-primary-light-3: #ff826d;
+    --el-color-primary-light-5: #ffa697;
+    --el-color-primary-light-7: #ffcac0;
+    --el-color-primary-light-8: #ffdbd5;
+    --el-color-primary-light-9: #ffedea;
+    --el-color-primary-dark-2: #cc3e25;
     --el-fill-color-blank: hsl(var(--background));
 }
 
-/*下拉框*/
-.el-select__wrapper{
-    @apply p-4 py-3 rounded-md
+/* 按钮：适中圆角 + 顺滑过渡 */
+.el-button {
+    border-radius: 10px;
+    transition: all 0.25s cubic-bezier(0.22, 0.61, 0.36, 1);
+    font-weight: 500;
 }
 
+.el-button--primary {
+    --el-button-hover-bg-color: var(--el-color-primary-dark-2);
+    box-shadow: 0 2px 8px rgb(255 77 46 / 0.25);
+}
+
+.el-button--primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgb(255 77 46 / 0.35);
+}
+
+.el-button--primary:active {
+    transform: translateY(0) scale(0.97);
+}
 
 .el-button+.el-button{
     margin-left: 0px;
 }
 
+/* 输入框：软填充 + 珊瑚聚焦环 */
+.el-input__wrapper,
+.el-textarea__inner {
+    background-color: #f7f3ec;
+    box-shadow: 0 0 0 1px #ede6da inset;
+    border-radius: 10px;
+    transition: box-shadow 0.25s ease, background-color 0.25s ease;
+}
+
+.el-input__wrapper:hover,
+.el-textarea__inner:hover {
+    background-color: #f4efe6;
+}
+
+.el-input__wrapper.is-focus,
+.el-textarea__inner:focus {
+    background-color: #ffffff;
+    box-shadow: 0 0 0 2px var(--el-color-primary) inset;
+}
+
+/* 弹窗：纸感卡片 */
+.el-dialog {
+    border-radius: 16px;
+    box-shadow: 0 2px 6px rgb(60 40 20 / 0.05), 0 24px 64px rgb(60 40 20 / 0.16);
+    overflow: hidden;
+}
+
+.el-dialog__title {
+    font-family: Georgia, 'Times New Roman', 'Songti SC', 'STSong', 'Noto Serif SC', 'SimSun', serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.el-overlay {
+    backdrop-filter: blur(4px);
+    background-color: rgb(38 34 28 / 0.35);
+}
+
+/* 滑块：珊瑚色轨 + 悬停浮现的精致手柄 */
+.el-slider__runway {
+    background-color: #ede6da;
+    transition: height 0.2s ease;
+}
+
+.el-slider__bar {
+    background: linear-gradient(90deg, #ff4d2e, #ff826d);
+}
+
+.el-slider__button-wrapper {
+    transition: opacity 0.2s ease;
+}
+
+.el-slider__button {
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--el-color-primary);
+    background-color: #ffffff;
+    box-shadow: 0 1px 4px rgb(60 40 20 / 0.2);
+}
+
+/* 下拉框 */
+.el-select__wrapper{
+    @apply p-4 py-3 rounded-md
+}
+
+/* Tabs：胶囊式选中 */
+.el-tabs__item {
+    transition: color 0.25s ease;
+}
+
+.el-tabs__active-bar {
+    height: 3px;
+    border-radius: 3px;
+}
+
+/* 轮播指示器：珊瑚长条 */
+.el-carousel__indicator .el-carousel__button {
+    width: 16px;
+    height: 4px;
+    border-radius: 4px;
+    background-color: rgb(255 255 255 / 0.5);
+    transition: all 0.3s ease;
+}
+
+.el-carousel__indicator.is-active .el-carousel__button {
+    width: 28px;
+    background-color: var(--el-color-primary);
+}
+
+/* Popover / Tooltip */
+.el-popover.el-popper {
+    border-radius: 14px;
+    box-shadow: 0 2px 6px rgb(60 40 20 / 0.05), 0 16px 48px rgb(60 40 20 / 0.14);
+    border: 1px solid #f0eae0;
+}
+
+/* 骨架屏：纸感暖灰 */
+.el-skeleton__item {
+    background: linear-gradient(90deg, #f0ebe2 25%, #f7f3ec 50%, #f0ebe2 75%);
+    background-size: 200% 100%;
+    animation: el-skeleton-shimmer 1.6s linear infinite;
+}
+
+@keyframes el-skeleton-shimmer {
+    from { background-position: 200% 0; }
+    to { background-position: -200% 0; }
+}
+
+/* 下拉菜单 */
+.el-dropdown-menu {
+    border-radius: 12px;
+    padding: 6px;
+}
+
+.el-dropdown-menu__item {
+    border-radius: 8px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* 抽屉播放页背景：封面晕染 */
 .drawer-bg {
     position: relative;
     overflow: hidden;
     background-repeat: no-repeat;
     background-color: hsl(var(--dm-background));
-  }
+}
 
-  .drawer-bg::before {
+.drawer-bg::before {
     content: '';
     position: absolute;
     top: 0;
@@ -34,9 +184,7 @@ html.dark {
     right: 0;
     bottom: 0;
     background-image: var(--track-cover-url);
-    /* 使用自定义属性 */
     background-repeat: no-repeat;
-    /* // background-size: 130%; 将背景图像放大到150% */
     background-position: center;
     filter: blur(60px);
     z-index: -1;
@@ -45,4 +193,4 @@ html.dark {
       rgba(0, 0, 0, 0.5) 1%,
       rgba(0, 0, 0, 0)
     );
-  }
+}

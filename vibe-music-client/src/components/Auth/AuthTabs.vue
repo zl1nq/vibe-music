@@ -47,20 +47,17 @@ const handleSwitchTab = (tab: string) => {
     <div>
       <el-tabs v-model="activeTab" class="auth-tabs">
         <el-tab-pane name="login" :label="tabTitles.login">
-          <LoginForm 
-            @success="handleSuccess" 
-            @switch-tab="handleSwitchTab"
-          />
+          <LoginForm @success="handleSuccess" @switch-tab="handleSwitchTab" />
         </el-tab-pane>
         <el-tab-pane name="register" :label="tabTitles.register">
-          <RegisterForm 
-            @success="handleSuccess" 
+          <RegisterForm
+            @success="handleSuccess"
             @switch-tab="handleSwitchTab"
           />
         </el-tab-pane>
         <el-tab-pane name="reset" :label="tabTitles.reset">
-          <ResetPasswordForm 
-            @success="handleSuccess" 
+          <ResetPasswordForm
+            @success="handleSuccess"
             @switch-tab="handleSwitchTab"
           />
         </el-tab-pane>

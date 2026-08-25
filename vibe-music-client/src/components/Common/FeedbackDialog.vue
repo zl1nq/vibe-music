@@ -9,7 +9,7 @@ const loading = ref(false)
 const formRef = ref<FormInstance>()
 
 const formData = reactive({
-  content: ''
+  content: '',
 })
 
 const rules = reactive<FormRules>({
@@ -17,7 +17,7 @@ const rules = reactive<FormRules>({
     { required: true, message: '请输入反馈内容', trigger: 'blur' },
     { min: 10, message: '反馈内容不能少于 10 个字符', trigger: 'blur' },
     { max: 200, message: '反馈内容不能超过 200 个字符', trigger: 'blur' },
-  ]
+  ],
 })
 
 // 打开对话框
@@ -58,21 +58,37 @@ const handleSubmit = async () => {
 
 // 将打开对话框的方法暴露出去
 defineExpose({ openDialog })
-
 </script>
 
 <template>
-  <el-dialog v-model="dialogVisible" title="意见反馈" width="500px" :close-on-click-modal="false" @close="closeDialog">
+  <el-dialog
+    v-model="dialogVisible"
+    title="意见反馈"
+    width="500px"
+    :close-on-click-modal="false"
+    @close="closeDialog"
+  >
     <el-form ref="formRef" :model="formData" :rules="rules" label-width="0px">
       <el-form-item prop="content">
-        <el-input v-model="formData.content" type="textarea" :rows="7" placeholder="请输入您的宝贵意见或建议（10-200字）"
-          maxlength="200" show-word-limit />
+        <el-input
+          v-model="formData.content"
+          type="textarea"
+          :rows="7"
+          placeholder="请输入您的宝贵意见或建议（10-200字）"
+          maxlength="200"
+          show-word-limit
+        />
       </el-form-item>
     </el-form>
     <template #footer>
       <span class="dialog-footer">
         <el-button class="cancel-btn mr-3" @click="closeDialog">取消</el-button>
-        <el-button class="submit-btn" type="primary" :loading="loading" @click="handleSubmit">
+        <el-button
+          class="feedback-submit-btn"
+          type="primary"
+          :loading="loading"
+          @click="handleSubmit"
+        >
           提交反馈
         </el-button>
       </span>
@@ -87,21 +103,21 @@ defineExpose({ openDialog })
 
 .cancel-btn {
   width: 15%;
-  border-radius: 8px;
-  height: 33px;
+  border-radius: 10px;
+  height: 34px;
   font-size: 14px;
 }
 
-.submit-btn {
+.feedback-submit-btn {
   width: 20%;
-  border-radius: 8px;
-  height: 33px;
+  border-radius: 10px;
+  height: 34px;
   font-size: 14px;
 }
 
 :deep(.el-textarea__inner) {
   margin-top: 6px;
-  border-radius: 8px;
+  border-radius: 10px;
   resize: none;
 }
 </style>

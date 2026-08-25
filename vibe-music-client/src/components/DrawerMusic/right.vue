@@ -3,7 +3,12 @@ import type { SongDetail } from '@/api/interface'
 import { ref, inject, type Ref, computed } from 'vue'
 import { formatNumber } from '@/utils'
 import coverImg from '@/assets/cover.png'
-import { likeComment, addSongComment, getSongDetail, deleteComment } from '@/api/system'
+import {
+  likeComment,
+  addSongComment,
+  getSongDetail,
+  deleteComment,
+} from '@/api/system'
 import { ElMessage } from 'element-plus'
 import { UserStore } from '@/stores/modules/user'
 
@@ -20,7 +25,9 @@ const maxLength = 180
 // 对评论进行排序，最新的显示在前面
 const comments = computed(() => {
   if (!songDetail.value?.comments) return []
-  return [...songDetail.value.comments].sort((a, b) => b.commentId - a.commentId)
+  return [...songDetail.value.comments].sort(
+    (a, b) => b.commentId - a.commentId
+  )
 })
 
 // 发布评论
@@ -34,17 +41,17 @@ const handleComment = async () => {
     ElMessage.warning('请输入评论内容')
     return
   }
-  
+
   try {
     const songId = songDetail.value?.songId
     if (!songId) return
-    
+
     const content = commentContent.value.trim()
     const res = await addSongComment({
       songId,
-      content
+      content,
     })
-    
+
     if (res.code === 0) {
       ElMessage.success('评论发布成功')
       commentContent.value = ''
@@ -65,7 +72,7 @@ const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString('zh-CN', {
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
   })
 }
 
@@ -82,19 +89,19 @@ const handleLike = async (comment: any) => {
     if (res.code === 0) {
       // 更新评论的点赞数量
       if (songDetail.value && songDetail.value.comments) {
-        const updatedComments = songDetail.value.comments.map(item => {
+        const updatedComments = songDetail.value.comments.map((item) => {
           if (item.commentId === comment.commentId) {
             return {
               ...item,
-              likeCount: item.likeCount + 1
+              likeCount: item.likeCount + 1,
             }
           }
           return item
         })
-        
+
         songDetail.value = {
           ...songDetail.value,
-          comments: updatedComments
+          comments: updatedComments,
         }
       }
 
@@ -148,8 +155,10 @@ const handleDelete = async (comment: any) => {
 
       <!-- 评论区 -->
       <div class="space-y-4">
-        <h3 class="text-xl font-semibold text-primary-foreground mt-12">评论（{{ formatNumber(songDetail.comments?.length || 0) }}）</h3>
-        
+        <h3 class="text-xl font-semibold text-primary-foreground mt-12">
+          评论（{{ formatNumber(songDetail.comments?.length || 0) }}）
+        </h3>
+
         <!-- 评论输入框 -->
         <div class="mb-4">
           <div class="flex items-start gap-3">
@@ -164,8 +173,11 @@ const handleDelete = async (comment: any) => {
                 show-word-limit
               />
               <div class="flex justify-end items-center mt-4">
-                <button @click="handleComment" :disabled="!commentContent.trim()"
-                  class="px-6 py-1.5 bg-primary text-white rounded-full text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors">
+                <button
+                  @click="handleComment"
+                  :disabled="!commentContent.trim()"
+                  class="px-6 py-1.5 bg-primary text-white rounded-full text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
+                >
                   发布
                 </button>
               </div>
@@ -177,27 +189,38 @@ const handleDelete = async (comment: any) => {
         <div v-if="comments.length > 0" class="space-y-4">
           <template v-for="comment in comments" :key="comment.commentId">
             <div class="flex gap-3 group">
-              <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 mt-0.5">
-                <img :src="comment.userAvatar || coverImg" alt="avatar" class="w-full h-full object-cover" />
+              <div
+                class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 mt-0.5"
+              >
+                <img
+                  :src="comment.userAvatar || coverImg"
+                  alt="avatar"
+                  class="w-full h-full object-cover"
+                />
               </div>
               <div class="flex-1">
                 <div class="flex items-center gap-2">
-                  <span class="text-sm font-medium text-blue-500">{{ comment.username }}</span>
+                  <span class="text-sm font-medium text-primary">{{
+                    comment.username
+                  }}</span>
                 </div>
                 <p class="text-sm mt-1 mb-2">{{ comment.content }}</p>
-                <div class="flex items-center justify-between text-sm text-gray-400">
+                <div
+                  class="flex items-center justify-between text-sm text-muted-foreground"
+                >
                   <span class="text-xs">{{ comment.createTime }}</span>
                   <div class="flex items-center gap-4">
                     <!-- 如果是用户自己的评论，显示删除按钮 -->
-                    <button v-if="comment.username === currentUsername"
+                    <button
+                      v-if="comment.username === currentUsername"
                       class="flex items-center gap-1 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
                       @click="handleDelete(comment)"
                     >
                       <icon-material-symbols:delete-outline />
                       <span>删除</span>
                     </button>
-                    <button 
-                      class="flex items-center gap-1 hover:text-gray-600"
+                    <button
+                      class="flex items-center gap-1 hover:text-primary"
                       @click="handleLike(comment)"
                     >
                       <span>{{ formatNumber(comment.likeCount) }}</span>
@@ -207,10 +230,10 @@ const handleDelete = async (comment: any) => {
                 </div>
               </div>
             </div>
-            <div class="border-b border-gray-300/70"></div>
+            <div class="border-b border-border"></div>
           </template>
         </div>
-        <div v-else class="text-center py-8 text-gray-500">
+        <div v-else class="text-center py-8 text-muted-foreground">
           <p>暂无评论，快来抢沙发吧~</p>
         </div>
       </div>

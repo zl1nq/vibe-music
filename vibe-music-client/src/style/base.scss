@@ -7,7 +7,7 @@ body,
 }
 
 html.light body {
-  background-image: linear-gradient(90deg, #f1f1f1 0%, #f1f1f1 100%);
+  background-color: #faf7f2;
   position: relative;
 }
 
@@ -35,15 +35,41 @@ html.light .gradient-bg::before {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: 226, 226, 226;
-  background-color: rgb(206, 206, 206);
+  background-color: rgb(216, 206, 192);
   border-radius: 10px;
 }
 
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(255, 77, 46);
+}
+
 .dark ::-webkit-scrollbar-thumb {
-  background: 226, 226, 226;
   background-color: rgb(66, 66, 66);
   border-radius: 10px;
+}
+
+// v-reveal 滚动渐入
+.v-reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.55s cubic-bezier(0.22, 0.61, 0.36, 1) var(--reveal-delay, 0ms),
+    transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1) var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+
+.v-reveal--visible {
+  opacity: 1;
+  // 结束时回到 none：避免驻留 transform 形成 fixed 定位陷阱
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }
 
 pre.hljs {

@@ -45,10 +45,20 @@ watch(
 )
 </script>
 <template>
-  <header class="px-4 py-2 border-b flex items-center">
-    <button class="flex relative w-60" @click="router.push('/')">
-      <img src="\logo.svg" alt="logo" class="w-10 h-10 ml-2" />
-      <span class="ml-3 text-2xl font-bold flex justify-center items-center"
+  <header
+    class="px-5 py-2.5 border-b border-border flex items-center animate-fade-in-down [animation-delay:1.15s]"
+  >
+    <button
+      class="flex relative w-60 items-center group"
+      @click="router.push('/')"
+    >
+      <img
+        src="\logo.svg"
+        alt="logo"
+        class="w-9 h-9 ml-2 transition-transform duration-500 ease-spring group-hover:rotate-12"
+      />
+      <span
+        class="ml-2.5 text-xl font-bold font-serif-display tracking-tight flex justify-center items-center"
         >Vibe Music</span
       >
     </button>
@@ -57,26 +67,23 @@ watch(
       <div class="relative mr-6">
         <Icon
           icon="mdi:magnify"
-          class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 text-xl"
+          class="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-lg pointer-events-none"
         />
         <input
           v-model="searchText"
           type="text"
-          class="mt-0.5 w-64 text-sm pl-8 pr-2 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-300 focus:w-80 search-bg"
+          class="mt-0.5 w-64 text-sm pl-9 pr-3 py-2 rounded-xl bg-white border border-border shadow-paper focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-300 ease-out-soft focus:w-80 placeholder:text-muted-foreground"
           placeholder="搜索..."
           @keyup.enter="router.push('/library?query=' + searchText)"
         />
       </div>
-      <button @click="toggleMode">
+      <button
+        class="p-2 rounded-full text-inactive hover:text-primary hover:bg-hoverMenuBg transition-all duration-300 ease-spring hover:rotate-12"
+        @click="toggleMode"
+      >
         <Icon class="text-xl" :icon="currentIcon" />
       </button>
     </div>
     <div class="ml-auto flex items-center gap-3"><Avatar /></div>
   </header>
 </template>
-
-<style scoped>
-.search-bg {
-  background-color: #e3e3e3;
-}
-</style>

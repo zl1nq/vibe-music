@@ -36,10 +36,20 @@ const openFeedbackDialog = () => {
 </script>
 
 <template>
-  <el-dropdown v-if="user.userInfo && user.userInfo.userId" class="cursor-pointer">
+  <el-dropdown
+    v-if="user.userInfo && user.userInfo.userId"
+    class="cursor-pointer"
+  >
     <span class="flex items-center">
-      <el-avatar :src="user.userInfo.avatarUrl || defaultAvatar" class="mr-1" shape="circle" :size="32" />
-      <span class="text-sm font-medium mr-2 ml-1">{{ user.userInfo.username }}</span>
+      <el-avatar
+        :src="user.userInfo.avatarUrl || defaultAvatar"
+        class="mr-1"
+        shape="circle"
+        :size="32"
+      />
+      <span class="text-sm font-medium mr-2 ml-1">{{
+        user.userInfo.username
+      }}</span>
       <icon-uiw:down />
     </span>
 
@@ -57,7 +67,12 @@ const openFeedbackDialog = () => {
       </el-dropdown-menu>
     </template>
   </el-dropdown>
-  <el-button class="mr-3 rounded-full" v-else type="primary" @click="showLogin = true">
+  <el-button
+    class="mr-3 rounded-full"
+    v-else
+    type="primary"
+    @click="showLogin = true"
+  >
     <div class="flex items-center gap-1">
       <icon-ic:baseline-person-pin />
       登录
