@@ -128,6 +128,6 @@ pnpm dev
 <br>
 <br>
 
-> 说明: 项目是基于 [Alex-LiSun](https://github.com/Alex-LiSun)的开源项目VibeMusic进行开发
+> 说明: 该项目是基于 [Alex-LiSun](https://github.com/Alex-LiSun)的开源项目VibeMusic进行二次开发
 > 📄: [MIT License](./LICENSE)
 
