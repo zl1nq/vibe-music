@@ -11,9 +11,11 @@ import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.http.MediaType;
-import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.publisher.Flux;
+
+import java.io.IOException;
 
 import static com.vibemusic.agent.AgentPrompt.DEFAULT_PROMPT;
 
@@ -37,6 +39,8 @@ public class AgentController {
                 .defaultOptions(
                         DashScopeChatOptions.builder()
                                 .topP(0.7)
+                                // 必须开启增量输出，否则 DashScope 会把整段回复一次性返回，前端无法流式展示
+                                .incrementalOutput(true)
                                 .build()
                 )
                 // 注册 VibeAgent 可调用的音乐数据工具
@@ -45,21 +49,43 @@ public class AgentController {
     }
 
     /**
-     * VibeAgent 聊天接口，供前端聊天窗使用
+     * VibeAgent 聊天接口，供前端聊天窗使用（SSE 流式输出）
+     * <p>
+     * 用 SseEmitter 逐段推送，确保每个增量都立即 flush 到客户端，
+     * 避免 Spring MVC 返回 Flux 时整包缓冲导致前端看不到流式效果。
      */
     @PostMapping(value = "/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ServerSentEvent<String>> chat(@RequestBody AgentChatDTO dto, HttpServletResponse response) {
+    public SseEmitter chat(@RequestBody AgentChatDTO dto, HttpServletResponse response) {
         log.info("chatController chat");
         response.setCharacterEncoding("UTF-8");
+        // 禁止代理/容器缓冲，保证流式逐段到达
+        response.setHeader("Cache-Control", "no-cache, no-transform");
+        response.setHeader("X-Accel-Buffering", "no");
+
+        // 0L 表示不设超时，避免模型工具调用较慢时被容器掐断
+        SseEmitter emitter = new SseEmitter(0L);
 
         Flux<String> content = this.chatClient.prompt(dto.getQuery())
                 .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, dto.getConversationId())
                 ).stream().content();
 
-        return content.map(delta -> ServerSentEvent.<String>builder()
-                .event("text")
-                .data(delta)
-                .build());
+        content.subscribe(
+                delta -> {
+                    try {
+                        emitter.send(SseEmitter.event().name("text").data(delta));
+                    } catch (IOException e) {
+                        log.warn("SSE 客户端已断开: {}", e.getMessage());
+                        emitter.complete();
+                    }
+                },
+                error -> {
+                    log.error("agent 对话流式输出失败", error);
+                    emitter.completeWithError(error);
+                },
+                emitter::complete
+        );
+
+        return emitter;
     }
 
     /**

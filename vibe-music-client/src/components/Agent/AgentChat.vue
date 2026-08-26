@@ -5,6 +5,7 @@ import { ElMessage } from 'element-plus'
 import { streamAgentChat } from '@/api/agent'
 import { extractVibeSongs, stripVibeSongsTag, VibeSong } from '@/utils/agent'
 import { useAudioPlayer } from '@/hooks/useAudioPlayer'
+import MdView from '@/components/Agent/MdView.vue'
 import default_album from '@/assets/default_album.jpg'
 
 interface ChatMessage {
@@ -224,10 +225,10 @@ const newConversation = () => {
             </div>
             <div class="flex-1 min-w-0 space-y-2">
               <div
-                class="text-sm leading-relaxed whitespace-pre-wrap bg-hoverMenuBg rounded-2xl rounded-tl-md px-4 py-2.5"
+                class="text-sm leading-relaxed bg-hoverMenuBg rounded-2xl rounded-tl-md px-4 py-2.5"
               >
                 <span v-if="!msg.content && msg.loading">正在思考...</span>
-                <span v-else>{{ stripVibeSongsTag(msg.content) }}</span>
+                <MdView v-else :content="stripVibeSongsTag(msg.content)" />
               </div>
 
               <!-- 推荐歌曲卡片 -->

@@ -45,14 +45,14 @@ export const streamAgentChat = async (
     buffer = events.pop() ?? ''
 
     for (const event of events) {
-      const dataLines = event
+      // 一个 SSE 事件内的多行 data: 拼接为一段完整内容（保留换行）
+      const data = event
         .split(/\r?\n/)
         .filter((line) => line.startsWith('data:'))
-        .map((line) => line.slice(5).trim())
-      for (const data of dataLines) {
-        if (data && data !== '[DONE]') {
-          onDelta(data)
-        }
+        .map((line) => line.slice(5))
+        .join('\n')
+      if (data.trim() && data !== '[DONE]') {
+        onDelta(data)
       }
     }
   }
