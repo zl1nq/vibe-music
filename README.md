@@ -85,7 +85,7 @@ vibe-music/
 ├── vibe-music-admin/            # 管理端前端（基于 vue-pure-admin）
 ```
 
-## 项目演示 🤩
+## 项目演示 📺
 [演示文档](./docs/演示.md)
 
 ## 快速开始 🚀
