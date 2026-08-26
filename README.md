@@ -4,8 +4,8 @@
 </div> -->
 <!-- --- -->
 <div align="center">
-  <img src="./favicon.ico" alt="Vibe Music Icon" width="150">
-  <h1>Vibe Music</h1>
+  <img src="./favicon.ico" alt="Vibe Music Icon" width="100">
+  <h3>Vibe Music</h3>
 
 </div>
 
@@ -34,8 +34,6 @@
 </p>
 
 ---
-
-# 
 
 Vibe Music 是一个前后端分离的在线音乐平台，包含**用户端音乐播放器**、**后台管理系统**和 **Spring Boot 后端服务**三大部分。用户可以在线搜索、播放、收藏和评论音乐，管理员可以在后台维护曲库与用户数据，平台还内置了一个基于大模型的 AI 音乐助手（VibeAgent）。
 
