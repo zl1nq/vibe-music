@@ -3,8 +3,8 @@
   <h1>Vibe Music</h1>
 </div> -->
 <!-- --- -->
-<div style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%;">
-  <img src="./favicon.ico" alt="Vibe Music Icon" width="100">
+<div align="center">
+  <img src="./favicon.ico" alt="Vibe Music Icon" width="150">
   <h1>Vibe Music</h1>
 
 </div>
