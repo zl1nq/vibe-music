@@ -1,5 +1,6 @@
 spring:
   profiles:
+  # 激活的dev配置文件,可按需切换
     active: dev
 
   # 配置数据源
@@ -54,8 +55,6 @@ spring:
   ai:
     dashscope:
       api-key: ${vibe-music.ai.dashscope.api-key}
-#    zhipuai:
-#      api-key: ${vibe-music.ai.zhipuai.api-key}
 
 # 配置 mybatis-plus
 mybatis-plus:

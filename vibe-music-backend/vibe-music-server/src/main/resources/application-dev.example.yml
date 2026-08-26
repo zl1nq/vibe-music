@@ -1,0 +1,23 @@
+
+vibe-music:
+  datasource:
+    url: jdbc:mysql://host:port/vibe_music?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: username
+    password: password
+  redis:
+    host: host
+    port: port
+    password: password
+  minio:
+    endpoint: http://localhost:9000 # 修改你的 MinIO 端点
+    accessKey: minioadmin # 修改你的 MinIO Access Key
+    secretKey: minioadmin # 修改你的 MinIO Secret Key
+    bucket: vibe-music-data # 确认 Bucket 名称与你创建的一致
+  mail:
+    # 配置邮箱账户和密码
+    host: smtp.example.com # 填写你的 SMTP 服务器地址，例如 smtp.qq.com
+    username: example@example.com # 填写你的邮箱账号
+    password: example # 填写你的邮箱密码或者授权码，推荐使用授权码
+  ai:
+    dashscope:
+      api-key: api-key # 填写你的 DashScope API Key
