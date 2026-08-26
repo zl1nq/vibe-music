@@ -54,8 +54,8 @@ spring:
   ai:
     dashscope:
       api-key: ${vibe-music.ai.dashscope.api-key}
-    zhipuai:
-      api-key: ${vibe-music.ai.zhipuai.api-key}
+#    zhipuai:
+#      api-key: ${vibe-music.ai.zhipuai.api-key}
 
 # 配置 mybatis-plus
 mybatis-plus:

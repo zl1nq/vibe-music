@@ -10,8 +10,6 @@ import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
-import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
@@ -25,12 +23,12 @@ import static com.vibemusic.agent.AgentPrompt.DEFAULT_PROMPT;
 public class AgentController {
 
 
-    private final ChatClient dashScopeChatClient;
+    private final ChatClient chatClient;
 
     public AgentController(ChatClient.Builder chatClientBuilder,
                            MusicAgentTools musicAgentTools) {
         log.info("AgentController constructor");
-        this.dashScopeChatClient = chatClientBuilder
+        this.chatClient = chatClientBuilder
                 .defaultSystem(DEFAULT_PROMPT)
                 .defaultAdvisors(
                         MessageChatMemoryAdvisor.builder(MessageWindowChatMemory.builder().build()).build(),
@@ -54,7 +52,7 @@ public class AgentController {
         log.info("chatController chat");
         response.setCharacterEncoding("UTF-8");
 
-        Flux<String> content = this.dashScopeChatClient.prompt(dto.getQuery())
+        Flux<String> content = this.chatClient.prompt(dto.getQuery())
                 .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, dto.getConversationId())
                 ).stream().content();
 
@@ -70,7 +68,7 @@ public class AgentController {
     @GetMapping("/simple/chat")
     public String simpleChat(@RequestParam(value = "query", defaultValue = "你好，很高兴认识你，能简单介绍一下自己吗？") String query) {
 
-        return dashScopeChatClient.prompt(query).call().content();
+        return chatClient.prompt(query).call().content();
     }
 
     /**
@@ -80,55 +78,6 @@ public class AgentController {
     public Flux<String> streamChat(@RequestParam(value = "query", defaultValue = "你好，很高兴认识你，能简单介绍一下自己吗？") String query, HttpServletResponse response) {
 
         response.setCharacterEncoding("UTF-8");
-        return dashScopeChatClient.prompt(query).stream().content();
-    }
-
-    /**
-     * ChatClient 使用自定义的 Advisor 实现功能增强（带会话记忆）.
-     */
-    @GetMapping("/advisor/chat/{conversationId}")
-    public Flux<String> advisorChat(
-            HttpServletResponse response,
-            @PathVariable String conversationId,
-            @RequestParam String query
-    ) {
-
-        response.setCharacterEncoding("UTF-8");
-
-        return this.dashScopeChatClient.prompt(query)
-                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, conversationId)
-                ).stream().content();
-    }
-
-    /**
-     * ChatClient 新的聊天接口，支持流式输出和自定义 ChatOptions 配置
-     */
-    @GetMapping("/advisor/newChat")
-    public Flux<String> newChat(
-            HttpServletResponse response,
-            @RequestParam(value = "query", defaultValue = "你好，很高兴认识你，能简单介绍一下自己吗？") String query,
-            @RequestParam(value = "topP", required = false) Double topP,
-            @RequestParam(value = "temperature", required = false) Double temperature,
-            @RequestParam(value = "maxTokens", required = false) Integer maxToken) {
-
-        response.setCharacterEncoding("UTF-8");
-
-        // 构建 ChatOptions
-        DashScopeChatOptions.DashScopeChatOptionsBuilder optionsBuilder = DashScopeChatOptions.builder();
-
-        if (topP != null) {
-            optionsBuilder.topP(topP);
-        }
-        if (temperature != null) {
-            optionsBuilder.temperature(temperature);
-        }
-        if (maxToken != null) {
-            optionsBuilder.maxToken(maxToken);
-        }
-
-        return this.dashScopeChatClient.prompt(query)
-                .options(optionsBuilder.build())
-                .stream()
-                .content();
+        return chatClient.prompt(query).stream().content();
     }
 }
