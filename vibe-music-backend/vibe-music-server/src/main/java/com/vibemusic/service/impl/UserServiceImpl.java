@@ -5,9 +5,11 @@ import com.vibemusic.constant.JwtClaimsConstant;
 import com.vibemusic.constant.MessageConstant;
 import com.vibemusic.enumeration.RoleEnum;
 import com.vibemusic.enumeration.UserStatusEnum;
+import com.vibemusic.mapper.UserFavoriteMapper;
 import com.vibemusic.mapper.UserMapper;
 import com.vibemusic.model.dto.*;
 import com.vibemusic.model.entity.User;
+import com.vibemusic.model.entity.UserFavorite;
 import com.vibemusic.model.vo.UserManagementVO;
 import com.vibemusic.model.vo.UserVO;
 import com.vibemusic.result.PageResult;
@@ -22,6 +24,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
@@ -29,6 +32,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
 import java.time.LocalDateTime;
@@ -57,6 +61,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     private EmailService emailService;
     @Autowired
     private MinioService minioService;
+    @Resource
+    private UserFavoriteMapper userFavoriteMapper;
 
     /**
      * 发送验证码
@@ -326,6 +332,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
      * @return 结果
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     @CacheEvict(cacheNames = "userCache", allEntries = true)
     public Result deleteAccount() {
         Map<String, Object> map = ThreadLocalUtil.get();
@@ -338,16 +345,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             return Result.error(MessageConstant.USER + MessageConstant.NOT_EXIST);
         }
 
+
+
+        // 删除用户
+        // 先删除用户收藏
+        userFavoriteMapper.delete(new QueryWrapper<UserFavorite>().eq("user_id", userId));
+        // 用户评论留着，不删除
+        if (userMapper.deleteById(userId) == 0) {
+            return Result.error(MessageConstant.DELETE + MessageConstant.FAILED);
+        }
+
         // 删除头像
         String userAvatar = user.getUserAvatar();
         if (userAvatar != null && !userAvatar.isEmpty()) {
             minioService.deleteFile(userAvatar);
         }
 
-        // 删除用户
-        if (userMapper.deleteById(userId) == 0) {
-            return Result.error(MessageConstant.DELETE + MessageConstant.FAILED);
-        }
         return Result.success(MessageConstant.DELETE + MessageConstant.SUCCESS);
     }
 

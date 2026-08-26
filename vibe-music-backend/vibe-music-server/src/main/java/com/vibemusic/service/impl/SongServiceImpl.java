@@ -4,18 +4,12 @@ import com.vibemusic.constant.JwtClaimsConstant;
 import com.vibemusic.constant.MessageConstant;
 import com.vibemusic.enumeration.LikeStatusEnum;
 import com.vibemusic.enumeration.RoleEnum;
-import com.vibemusic.mapper.GenreMapper;
-import com.vibemusic.mapper.SongMapper;
-import com.vibemusic.mapper.StyleMapper;
-import com.vibemusic.mapper.UserFavoriteMapper;
+import com.vibemusic.mapper.*;
 import com.vibemusic.model.dto.SongAddDTO;
 import com.vibemusic.model.dto.SongAndArtistDTO;
 import com.vibemusic.model.dto.SongDTO;
 import com.vibemusic.model.dto.SongUpdateDTO;
-import com.vibemusic.model.entity.Genre;
-import com.vibemusic.model.entity.Song;
-import com.vibemusic.model.entity.Style;
-import com.vibemusic.model.entity.UserFavorite;
+import com.vibemusic.model.entity.*;
 import com.vibemusic.model.vo.SongAdminVO;
 import com.vibemusic.model.vo.SongDetailVO;
 import com.vibemusic.model.vo.SongVO;
@@ -29,8 +23,10 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
@@ -38,6 +34,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -53,22 +50,26 @@ import java.util.stream.Collectors;
  * @since 2025-01-09
  */
 @Service
+@Slf4j
 @CacheConfig(cacheNames = "songCache")
 public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements ISongService {
 
-    @Autowired
+    @Resource
     private SongMapper songMapper;
-    @Autowired
+    @Resource
     private UserFavoriteMapper userFavoriteMapper;
-    @Autowired
+    @Resource
     private StyleMapper styleMapper;
-    @Autowired
+    @Resource
     private GenreMapper genreMapper;
-    @Autowired
+    @Resource
     private MinioService minioService;
-    @Autowired
+    @Resource
     private RedisTemplate redisTemplate;
-
+    @Resource
+    private PlaylistBindingMapper playlistBindingMapper;
+    @Resource
+    private CommentMapper commentMapper;
     /**
      * 获取所有歌曲
      *
@@ -295,6 +296,7 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
      * @return 结果
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     @CacheEvict(cacheNames = "songCache", allEntries = true)
     public Result addSong(SongAddDTO songAddDTO) {
         if (songAddDTO == null) {
@@ -354,6 +356,7 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
      * @return 结果
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     @CacheEvict(cacheNames = "songCache", allEntries = true)
     public Result updateSong(SongUpdateDTO songUpdateDTO) {
         // 查询数据库中是否存在该歌曲
@@ -451,15 +454,22 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
      * @return 删除结果
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     @CacheEvict(cacheNames = "songCache", allEntries = true)
     public Result deleteSong(Long songId) {
+        log.info("删除歌曲: {}", songId);
+
         Song song = songMapper.selectById(songId);
         if (song == null) {
             return Result.error(MessageConstant.SONG + MessageConstant.NOT_FOUND);
         }
+
+        Result DELETE = deleteSongById(songId);
+        if (DELETE != null) return DELETE;
+
+        // 删除 MinIO 里的歌曲封面和音频文件
         String cover = song.getCoverUrl();
         String audio = song.getAudioUrl();
-
         if (cover != null && !cover.isEmpty()) {
             minioService.deleteFile(cover);
         }
@@ -467,11 +477,21 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
             minioService.deleteFile(audio);
         }
 
+        return Result.success(MessageConstant.DELETE + MessageConstant.SUCCESS);
+    }
+
+    @Nullable
+    private Result deleteSongById(Long songId) {
+        //  先删关联表
+        genreMapper.delete(new QueryWrapper<Genre>().eq("song_id", songId));
+        playlistBindingMapper.delete(new QueryWrapper<PlaylistBinding>().eq("song_id", songId));
+        userFavoriteMapper.delete(new QueryWrapper<UserFavorite>().eq("song_id", songId));
+        commentMapper.delete(new QueryWrapper<Comment>().eq("song_id", songId));
+        // 删除数据库song主表中的歌曲信息
         if (songMapper.deleteById(songId) == 0) {
             return Result.error(MessageConstant.DELETE + MessageConstant.FAILED);
         }
-
-        return Result.success(MessageConstant.DELETE + MessageConstant.SUCCESS);
+        return null;
     }
 
     /**
@@ -481,10 +501,21 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
      * @return 删除结果
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     @CacheEvict(cacheNames = "songCache", allEntries = true)
     public Result deleteSongs(List<Long> songIds) {
-        // 1. 查询歌曲信息，获取歌曲封面 URL 列表
+        // 查询歌曲信息，获取歌曲封面 URL 列表
         List<Song> songs = songMapper.selectByIds(songIds);
+
+        // 删除数据库中的歌曲信息
+        genreMapper.deleteByIds(songIds);
+        playlistBindingMapper.deleteByIds(songIds);
+        userFavoriteMapper.deleteByIds(songIds);
+        commentMapper.deleteByIds(songIds);
+        if(songMapper.deleteByIds(songIds) == 0){
+            return Result.error(MessageConstant.DELETE + MessageConstant.FAILED);
+        }
+
         List<String> coverUrlList = songs.stream()
                 .map(Song::getCoverUrl)
                 .filter(coverUrl -> coverUrl != null && !coverUrl.isEmpty())
@@ -494,17 +525,12 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
                 .filter(audioUrl -> audioUrl != null && !audioUrl.isEmpty())
                 .toList();
 
-        // 2. 先删除 MinIO 里的歌曲封面和音频文件
+        // 先删除 MinIO 里的歌曲封面和音频文件
         for (String coverUrl : coverUrlList) {
             minioService.deleteFile(coverUrl);
         }
         for (String audioUrl : audioUrlList) {
             minioService.deleteFile(audioUrl);
-        }
-
-        // 3. 删除数据库中的歌曲信息
-        if (songMapper.deleteByIds(songIds) == 0) {
-            return Result.error(MessageConstant.DELETE + MessageConstant.FAILED);
         }
 
         return Result.success(MessageConstant.DELETE + MessageConstant.SUCCESS);

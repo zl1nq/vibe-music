@@ -54,16 +54,17 @@ public class AdminController {
      * @param bindingResult 绑定结果
      * @return 结果
      */
-    @PostMapping("/register")
-    public Result register(@RequestBody @Valid AdminDTO adminDTO, BindingResult bindingResult) {
-        // 校验失败时，返回错误信息
-        String errorMessage = BindingResultUtil.handleBindingResultErrors(bindingResult);
-        if (errorMessage != null) {
-            return Result.error(errorMessage);
-        }
-
-        return adminService.register(adminDTO);
-    }
+    // 关闭管理员注册接口
+//    @PostMapping("/register")
+//    public Result register(@RequestBody @Valid AdminDTO adminDTO, BindingResult bindingResult) {
+//        // 校验失败时，返回错误信息
+//        String errorMessage = BindingResultUtil.handleBindingResultErrors(bindingResult);
+//        if (errorMessage != null) {
+//            return Result.error(errorMessage);
+//        }
+//
+//        return adminService.register(adminDTO);
+//    }
 
     /**
      * 登录管理员

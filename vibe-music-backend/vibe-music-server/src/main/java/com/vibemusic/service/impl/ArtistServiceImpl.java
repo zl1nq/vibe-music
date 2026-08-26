@@ -5,11 +5,13 @@ import com.vibemusic.constant.MessageConstant;
 import com.vibemusic.enumeration.LikeStatusEnum;
 import com.vibemusic.enumeration.RoleEnum;
 import com.vibemusic.mapper.ArtistMapper;
+import com.vibemusic.mapper.SongMapper;
 import com.vibemusic.mapper.UserFavoriteMapper;
 import com.vibemusic.model.dto.ArtistAddDTO;
 import com.vibemusic.model.dto.ArtistDTO;
 import com.vibemusic.model.dto.ArtistUpdateDTO;
 import com.vibemusic.model.entity.Artist;
+import com.vibemusic.model.entity.Song;
 import com.vibemusic.model.entity.UserFavorite;
 import com.vibemusic.model.vo.ArtistDetailVO;
 import com.vibemusic.model.vo.ArtistNameVO;
@@ -18,6 +20,7 @@ import com.vibemusic.model.vo.SongVO;
 import com.vibemusic.result.PageResult;
 import com.vibemusic.result.Result;
 import com.vibemusic.service.IArtistService;
+import com.vibemusic.service.ISongService;
 import com.vibemusic.service.MinioService;
 import com.vibemusic.util.JwtUtil;
 import com.vibemusic.util.TypeConversionUtil;
@@ -25,6 +28,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +36,7 @@ import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -56,6 +61,10 @@ public class ArtistServiceImpl extends ServiceImpl<ArtistMapper, Artist> impleme
     private UserFavoriteMapper userFavoriteMapper;
     @Autowired
     private MinioService minioService;
+    @Resource
+    private ISongService songService;
+    @Resource
+    private SongMapper songMapper;
 
     /**
      * 获取所有歌手列表
@@ -337,24 +346,34 @@ public class ArtistServiceImpl extends ServiceImpl<ArtistMapper, Artist> impleme
      * @return 删除结果
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     @CacheEvict(cacheNames = "artistCache", allEntries = true)
     public Result deleteArtist(Long artistId) {
-        // 1. 查询歌手信息，获取头像 URL
+        // 查询歌手信息，获取头像 URL
         Artist artist = artistMapper.selectById(artistId);
         if (artist == null) {
             return Result.error(MessageConstant.ARTIST + MessageConstant.NOT_FOUND);
         }
         String avatarUrl = artist.getAvatar();
 
-        // 2. 先删除 MinIO 里的头像文件
+        // 删除数据库中歌手的相关信息
+        // 获取歌手的所有歌曲id
+        List<Song> songs = songMapper.selectList(new QueryWrapper<Song>().eq("artist_id", artistId));
+        // 删除歌手的所有歌曲的相关信息
+        if (!songs.isEmpty()) {
+            songService.deleteSongs(songs.stream().map(Song::getSongId).collect(Collectors.toList()));
+        }
+        // 删除歌手信息
+        if (artistMapper.deleteById(artistId) == 0) {
+            return Result.error(MessageConstant.DELETE + MessageConstant.FAILED);
+        }
+
+        // 先删除 MinIO 里的头像文件
         if (avatarUrl != null && !avatarUrl.isEmpty()) {
             minioService.deleteFile(avatarUrl);
         }
 
-        // 3. 删除数据库中的歌手信息
-        if (artistMapper.deleteById(artistId) == 0) {
-            return Result.error(MessageConstant.DELETE + MessageConstant.FAILED);
-        }
+
 
         return Result.success(MessageConstant.DELETE + MessageConstant.SUCCESS);
     }
