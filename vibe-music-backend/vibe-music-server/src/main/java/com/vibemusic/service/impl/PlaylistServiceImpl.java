@@ -333,6 +333,9 @@ public class PlaylistServiceImpl extends ServiceImpl<PlaylistMapper, Playlist> i
     @Override
     @CacheEvict(cacheNames = "playlistCache", allEntries = true)
     public Result updatePlaylistCover(Long playlistId, String coverUrl) {
+        if (playlistId == null || coverUrl == null) {
+            return Result.error(MessageConstant.ERROR);
+        }
         Playlist playlist = playlistMapper.selectById(playlistId);
         String cover = playlist.getCoverUrl();
         if (cover != null && !cover.isEmpty()) {

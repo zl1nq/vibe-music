@@ -69,7 +69,7 @@
 
     <!-- 根据风格推荐歌单（排除已收藏歌单） -->
     <select id="getRecommendedPlaylistsByStyles" resultType="com.vibemusic.model.vo.PlaylistVO">
-        SELECT *
+        SELECT id as playlistId,title,cover_url
         FROM tb_playlist
         WHERE style IN
         <foreach item="style" collection="sortedStyleIds" open="(" separator="," close=")">

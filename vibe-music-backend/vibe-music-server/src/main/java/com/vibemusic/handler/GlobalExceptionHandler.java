@@ -4,6 +4,7 @@ import com.vibemusic.constant.MessageConstant;
 import lombok.extern.slf4j.Slf4j;
 import com.vibemusic.result.Result;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -69,16 +70,16 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 处理其他未知异常
+     * 处理其他未知异常，兜底异常处理
      *
      * @param ex
      * @return
      */
-    //@ExceptionHandler(Exception.class)
-    //@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    //public Result handleException(Exception ex) {
-    //    log.error("未知异常：{}", ex.getMessage(), ex);
-    //    String message = StringUtils.hasLength(ex.getMessage()) ? ex.getMessage() : MessageConstant.UNKNOWN_ERROR;
-    //    return errorResult(message);
-    //}
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Result handleException(Exception ex) {
+        log.error("未知异常：{}", ex.getMessage(), ex);
+        String message = StringUtils.hasLength(ex.getMessage()) ? ex.getMessage() : MessageConstant.UNKNOWN_ERROR;
+        return errorResult(message);
+    }
 }

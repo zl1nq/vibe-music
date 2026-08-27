@@ -395,7 +395,7 @@ public class AdminController {
      * @return 结果
      */
     @PostMapping("/getAllPlaylists")
-    public Result<PageResult<Playlist>> getAllPlaylists(@RequestBody PlaylistDTO playlistDTO) {
+    public Result<PageResult<Playlist>> getAllPlaylists(@Valid @RequestBody PlaylistDTO playlistDTO) {
         return playlistService.getAllPlaylistsInfo(playlistDTO);
     }
 
@@ -406,7 +406,7 @@ public class AdminController {
      * @return 结果
      */
     @PostMapping("/addPlaylist")
-    public Result addPlaylist(@RequestBody PlaylistAddDTO playlistAddDTO) {
+    public Result addPlaylist(@Valid @RequestBody PlaylistAddDTO playlistAddDTO) {
         return playlistService.addPlaylist(playlistAddDTO);
     }
 
@@ -417,7 +417,7 @@ public class AdminController {
      * @return 结果
      */
     @PutMapping("/updatePlaylist")
-    public Result updatePlaylist(@RequestBody PlaylistUpdateDTO playlistUpdateDTO) {
+    public Result updatePlaylist(@Valid @RequestBody PlaylistUpdateDTO playlistUpdateDTO) {
         return playlistService.updatePlaylist(playlistUpdateDTO);
     }
 

@@ -93,6 +93,9 @@ public class BannerServiceImpl extends ServiceImpl<BannerMapper, Banner> impleme
     @Override
     @CacheEvict(cacheNames = "bannerCache", allEntries = true)
     public Result updateBanner(Long bannerId, String bannerUrl) {
+        if (bannerId == null || bannerUrl == null) {
+            return Result.error(MessageConstant.ERROR);
+        }
         Banner banner = bannerMapper.selectById(bannerId);
         String oldBannerUrl = banner.getBannerUrl();
         if (oldBannerUrl != null && !oldBannerUrl.isEmpty()) {

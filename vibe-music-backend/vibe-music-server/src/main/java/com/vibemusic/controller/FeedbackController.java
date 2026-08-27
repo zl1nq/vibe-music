@@ -1,6 +1,6 @@
 package com.vibemusic.controller;
 
-
+import jakarta.validation.Valid;
 import com.vibemusic.model.dto.FeedbackDTO;
 import com.vibemusic.model.entity.Feedback;
 import com.vibemusic.result.PageResult;
@@ -31,7 +31,7 @@ public class FeedbackController {
      * @return 反馈列表
      */
     @PostMapping("/admin/getAllFeedbacks")
-    public Result<PageResult<Feedback>> getAllFeedbacks(@RequestBody FeedbackDTO feedbackDTO) {
+    public Result<PageResult<Feedback>> getAllFeedbacks(@Valid @RequestBody FeedbackDTO feedbackDTO) {
         return feedbackService.getAllFeedbacks(feedbackDTO);
     }
 
