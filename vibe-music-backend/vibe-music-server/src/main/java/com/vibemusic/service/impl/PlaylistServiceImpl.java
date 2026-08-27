@@ -78,7 +78,7 @@ public class PlaylistServiceImpl extends ServiceImpl<PlaylistMapper, Playlist> i
         }
 
         IPage<Playlist> playlistPage = playlistMapper.selectPage(page, queryWrapper);
-        if (playlistPage.getRecords().size() == 0) {
+        if (playlistPage.getRecords().isEmpty()) {
             return Result.success(MessageConstant.DATA_NOT_FOUND, new PageResult<>(0L, null));
         }
 
@@ -116,7 +116,7 @@ public class PlaylistServiceImpl extends ServiceImpl<PlaylistMapper, Playlist> i
         queryWrapper.orderByDesc("id");
 
         IPage<Playlist> playlistPage = playlistMapper.selectPage(page, queryWrapper);
-        if (playlistPage.getRecords().size() == 0) {
+        if (playlistPage.getRecords().isEmpty()) {
             return Result.success(MessageConstant.DATA_NOT_FOUND, new PageResult<>(0L, null));
         }
 
@@ -361,16 +361,17 @@ public class PlaylistServiceImpl extends ServiceImpl<PlaylistMapper, Playlist> i
         if (playlist == null) {
             return Result.error(MessageConstant.PLAYLIST + MessageConstant.NOT_FOUND);
         }
-        String coverUrl = playlist.getCoverUrl();
 
-        // 2. 先删除 MinIO 里的封面文件
-        if (coverUrl != null && !coverUrl.isEmpty()) {
-            minioService.deleteFile(coverUrl);
-        }
-
-        // 3. 删除数据库中的歌单信息
+        // 删除数据库中的歌单信息
         if (playlistMapper.deleteById(playlistId) == 0) {
             return Result.error(MessageConstant.DELETE + MessageConstant.FAILED);
+        }
+
+        // 文件删除操作无法回滚，所以绝不能放在数据库事务提交之前
+        // 删除 MinIO 里的封面文件
+        String coverUrl = playlist.getCoverUrl();
+        if (coverUrl != null && !coverUrl.isEmpty()) {
+            minioService.deleteFile(coverUrl);
         }
 
         return Result.success(MessageConstant.DELETE + MessageConstant.SUCCESS);
@@ -391,14 +392,14 @@ public class PlaylistServiceImpl extends ServiceImpl<PlaylistMapper, Playlist> i
                 .filter(coverUrl -> coverUrl != null && !coverUrl.isEmpty())
                 .toList();
 
-        // 2. 先删除 MinIO 里的封面文件
-        for (String coverUrl : coverUrlList) {
-            minioService.deleteFile(coverUrl);
-        }
-
-        // 3. 删除数据库中的歌单信息
+        // 删除数据库中的歌单信息
         if (playlistMapper.deleteBatchIds(playlistIds) == 0) {
             return Result.error(MessageConstant.DELETE + MessageConstant.FAILED);
+        }
+
+        // 删除 MinIO 里的封面文件
+        for (String coverUrl : coverUrlList) {
+            minioService.deleteFile(coverUrl);
         }
 
         return Result.success(MessageConstant.DELETE + MessageConstant.SUCCESS);
