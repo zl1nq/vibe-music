@@ -205,7 +205,9 @@ public class PlaylistServiceImpl extends ServiceImpl<PlaylistMapper, Playlist> i
     @Cacheable(key = "#playlistId")
     public Result<PlaylistDetailVO> getPlaylistDetail(Long playlistId, HttpServletRequest request) {
         PlaylistDetailVO playlistDetailVO = playlistMapper.getPlaylistDetailById(playlistId);
-
+        if (playlistDetailVO == null) {
+            return Result.success(MessageConstant.DATA_NOT_FOUND, null);
+        }
         // 设置默认状态
         List<SongVO> songVOList = playlistDetailVO.getSongs();
         songVOList.forEach(songVO -> songVO.setLikeStatus(LikeStatusEnum.DEFAULT.getId()));

@@ -196,6 +196,12 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
 
+        // 收藏的歌曲均无风格数据时无法按风格推荐，退化为随机歌曲
+        if (sortedStyleIds.isEmpty()) {
+            log.warn("用户 {} 收藏的歌曲均无风格数据，推荐退化为随机歌曲", userId);
+            return Result.success(songMapper.getRandomSongsWithArtist());
+        }
+
         // 从 Redis 获取缓存的推荐列表
         String redisKey = "recommended_songs:" + userId;
         List<SongVO> cachedSongs = redisTemplate.opsForList().range(redisKey, 0, -1);
@@ -204,8 +210,14 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
         if (cachedSongs == null || cachedSongs.isEmpty()) {
             // 根据排序后的风格推荐歌曲（排除已收藏歌曲）
             cachedSongs = songMapper.getRecommendedSongsByStyles(sortedStyleIds, favoriteSongIds, 80);
-            redisTemplate.opsForList().rightPushAll(redisKey, cachedSongs);
-            redisTemplate.expire(redisKey, 30, TimeUnit.MINUTES); // 设置过期时间 30 分钟
+            // 空列表写入 Redis 会抛异常，仅在非空时缓存
+            if (!cachedSongs.isEmpty()) {
+                redisTemplate.opsForList().rightPushAll(redisKey, cachedSongs);
+                redisTemplate.expire(redisKey, 30, TimeUnit.MINUTES); // 设置过期时间 30 分钟
+                log.debug("已缓存用户 {} 的风格推荐歌曲 {} 首", userId, cachedSongs.size());
+            } else {
+                log.warn("用户 {} 按风格推荐查询结果为空，跳过缓存写入", userId);
+            }
         }
 
         // 随机选取 20 首
