@@ -50,9 +50,6 @@ public class AgentController {
 
     /**
      * VibeAgent 聊天接口，供前端聊天窗使用（SSE 流式输出）
-     * <p>
-     * 用 SseEmitter 逐段推送，确保每个增量都立即 flush 到客户端，
-     * 避免 Spring MVC 返回 Flux 时整包缓冲导致前端看不到流式效果。
      */
     @PostMapping(value = "/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter chat(@RequestBody AgentChatDTO dto, HttpServletResponse response) {
@@ -62,13 +59,18 @@ public class AgentController {
         response.setHeader("Cache-Control", "no-cache, no-transform");
         response.setHeader("X-Accel-Buffering", "no");
 
-        // 0L 表示不设超时，避免模型工具调用较慢时被容器掐断
         SseEmitter emitter = new SseEmitter(0L);
-
         Flux<String> content = this.chatClient.prompt(dto.getQuery())
                 .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, dto.getConversationId())
                 ).stream().content();
+        streamToEmitter(content, emitter);
+        return emitter;
+    }
 
+    /**
+     * 把流式内容逐段推送到 SseEmitter（每次 send 都会立即 flush 到客户端）
+     */
+    private void streamToEmitter(Flux<String> content, SseEmitter emitter) {
         content.subscribe(
                 delta -> {
                     try {
@@ -84,8 +86,6 @@ public class AgentController {
                 },
                 emitter::complete
         );
-
-        return emitter;
     }
 
     /**
@@ -98,12 +98,18 @@ public class AgentController {
     }
 
     /**
-     * ChatClient 流式调用（GET，便于手动测试）
+     * ChatClient 流式调用（GET，便于手动测试，curl -N 观察逐段输出）
      */
     @GetMapping("/stream/chat")
-    public Flux<String> streamChat(@RequestParam(value = "query", defaultValue = "你好，很高兴认识你，能简单介绍一下自己吗？") String query, HttpServletResponse response) {
+    public SseEmitter streamChat(@RequestParam(value = "query", defaultValue = "你好，很高兴认识你，能简单介绍一下自己吗？") String query,
+                                 HttpServletResponse response) {
 
         response.setCharacterEncoding("UTF-8");
-        return chatClient.prompt(query).stream().content();
+        response.setHeader("Cache-Control", "no-cache, no-transform");
+        response.setHeader("X-Accel-Buffering", "no");
+
+        SseEmitter emitter = new SseEmitter(0L);
+        streamToEmitter(chatClient.prompt(query).stream().content(), emitter);
+        return emitter;
     }
 }

@@ -6,10 +6,13 @@ spring:
   # 配置数据源
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${vibe-music.datasource.url} # 修改你的 MySQL 地址和库名
+    # 修改你的 MySQL 地址和库名
+    url: ${vibe-music.datasource.url}
     username: ${vibe-music.datasource.username} # 修改你的 MySQL 用户名
     password: ${vibe-music.datasource.password} # 修改你的 MySQL 密码
-    type: com.alibaba.druid.pool.DruidDataSource # 配置连接池
+      # 指定使用Druid数据源（关键）
+    type: com.alibaba.druid.pool.DruidDataSource
+    #type: com.alibaba.druid.pool.DruidDataSource # 配置连接池
 
   # Redis服务连接配置
   data:

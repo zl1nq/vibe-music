@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { nextTick, ref } from 'vue'
+import { nextTick, reactive, ref } from 'vue'
 import { Icon } from '@iconify/vue'
 import { ElMessage } from 'element-plus'
 import { streamAgentChat } from '@/api/agent'
+import { getSongDetail } from '@/api/system'
+import { SongDetail } from '@/api/interface'
 import { extractVibeSongs, stripVibeSongsTag, VibeSong } from '@/utils/agent'
 import { useAudioPlayer } from '@/hooks/useAudioPlayer'
 import MdView from '@/components/Agent/MdView.vue'
@@ -50,12 +52,14 @@ const send = async () => {
 
   input.value = ''
   messages.value.push({ role: 'user', content: text, songs: [] })
-  const assistantMsg: ChatMessage = {
+  // 必须用 reactive 包装，流式中直接改 assistantMsg.content 才能触发响应式更新；
+  // 否则改的是 push 进数组前那个原始对象，界面只在请求结束时一次性刷新
+  const assistantMsg = reactive<ChatMessage>({
     role: 'assistant',
     content: '',
     songs: [],
     loading: true,
-  }
+  })
   messages.value.push(assistantMsg)
   streaming.value = true
   abortController = new AbortController()
@@ -89,19 +93,33 @@ const send = async () => {
 
 // 播放推荐歌曲：加入播放队列并立即播放
 const playSong = async (song: VibeSong) => {
-  audio.addTracks({
-    id: song.songId.toString(),
-    title: song.songName,
-    artist: song.artistName,
-    album: song.album,
-    cover: song.coverUrl || default_album,
-    url: song.audioUrl,
-    duration: Number(song.duration) || 0,
-    likeStatus: song.likeStatus || 0,
-  })
-  await loadTrack()
-  play()
-  ElMessage.success(`正在播放：${song.songName} - ${song.artistName}`)
+  try {
+    // 模型输出的 <vibe-songs> 有时会缺 audioUrl，缺了就回源取歌曲详情
+    let audioUrl = song.audioUrl
+    if (!audioUrl) {
+      const res = await getSongDetail(song.songId)
+      audioUrl = (res.data as unknown as SongDetail | undefined)?.audioUrl
+    }
+    if (!audioUrl) {
+      ElMessage.warning('该歌曲暂无播放资源')
+      return
+    }
+    audio.addTracks({
+      id: song.songId.toString(),
+      title: song.songName,
+      artist: song.artistName,
+      album: song.album,
+      cover: song.coverUrl || default_album,
+      url: audioUrl,
+      duration: Number(song.duration) || 0,
+      likeStatus: song.likeStatus || 0,
+    })
+    await loadTrack()
+    play()
+    ElMessage.success(`正在播放：${song.songName} - ${song.artistName}`)
+  } catch {
+    ElMessage.error('播放失败，请重试')
+  }
 }
 
 // 新建会话：清空记忆与聊天记录
@@ -257,7 +275,7 @@ const newConversation = () => {
                     </div>
                   </div>
                   <button
-                    class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 flex-shrink-0"
+                    class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center transition-all duration-300 hover:scale-110 flex-shrink-0"
                     aria-label="播放"
                     @click.stop="playSong(song)"
                   >
