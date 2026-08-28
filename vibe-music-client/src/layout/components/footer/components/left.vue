@@ -16,6 +16,7 @@ const showDrawerMusic = ref(false)
       <img
         :src="currentTrack.cover + '?param=90y90'"
         :alt="currentTrack.title"
+        decoding="async"
         class="w-full h-full object-cover rounded-full ring-2 ring-border"
         :class="isPlaying ? 'animate-spin-slow' : ''"
       />

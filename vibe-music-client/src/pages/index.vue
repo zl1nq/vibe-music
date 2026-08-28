@@ -164,8 +164,16 @@ const isCurrentPlaying = (songId: number) => {
           type="card"
           height="280px"
         >
-          <el-carousel-item v-for="item in bannerList" :key="item.bannerId">
-            <img :src="item.bannerUrl" class="w-full h-full object-cover" />
+          <el-carousel-item
+            v-for="(item, index) in bannerList"
+            :key="item.bannerId"
+          >
+            <img
+              :src="item.bannerUrl"
+              class="w-full h-full object-cover"
+              decoding="async"
+              :fetchpriority="index === 0 ? 'high' : 'auto'"
+            />
           </el-carousel-item>
         </el-carousel>
         <div v-else class="h-[280px] rounded-xl bg-muted animate-pulse"></div>
@@ -215,7 +223,7 @@ const isCurrentPlaying = (songId: number) => {
             <div class="aspect-square overflow-hidden relative">
               <img
                 :alt="i.title"
-                loading="lazy"
+                decoding="async"
                 class="w-full h-full object-cover transition-transform duration-500 ease-out-soft group-hover:scale-105"
                 :src="replaceUrlParams(i.coverUrl ?? coverImg, 'param=350y350')"
               />
