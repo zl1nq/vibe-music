@@ -10,27 +10,31 @@
 </div>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Spring%20AI-1.1.2-6DB33F?logo=spring" alt="Spring AI">
-  <img src="https://img.shields.io/badge/Spring%20Boot-3.5.16-6DB33F?logo=springboot" alt="Spring Boot">
-  <img src="https://img.shields.io/badge/MyBatis-3.5.9-000000" alt="MyBatis Plus">
-  <img src="https://img.shields.io/badge/JDK-17+-orange?logo=openjdk" alt="JDK 17+">
-  <img src="https://img.shields.io/badge/Maven-3.8+-C71A36?logo=apache-maven" alt="Maven">
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/MySQL-8.0+-4479A1?logo=mysql" alt="MySQL">
-  <img src="https://img.shields.io/badge/Redis-7.0+-DC382D?logo=redis" alt="Redis">
-  <img src="https://img.shields.io/badge/MinIO-250907T16-00C7B1?logo=minio" alt="MinIO">
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Node.js-18+-339933?logo=node.js" alt="Node.js">
-  <img src="https://img.shields.io/badge/pnpm-9.15.2+-F69220?logo=pnpm" alt="pnpm">
-</p>
-<p align="center">
   <a href="https://github.com/your-username/vibe-music/blob/main/LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-blue" alt="license MIT">
   </a>
+</p>
+
+
+
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Node.js-18+-339933?logo=node.js" alt="Node.js">
+  <img src="https://img.shields.io/badge/Vue-3-63ed98?logo=vue.js" alt="Vue">
+  <img src="https://img.shields.io/badge/pnpm-9.15.2+-F69220?logo=pnpm" alt="pnpm">
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Maven-3.8+-C71A36?logo=apache-maven" alt="Maven">
+  <img src="https://img.shields.io/badge/Spring%20AI-1.1.2-6DB33F?logo=spring" alt="Spring AI">
+  <img src="https://img.shields.io/badge/Spring%20Boot-3.5-6DB33F?logo=springboot" alt="Spring Boot">
+
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/MySQL-8.0+-4479A1?logo=mysql&logoColor=white" alt="MySQL">
+  <img src="https://img.shields.io/badge/Redis-7.0+-DC382D?logo=redis" alt="Redis">
+  <img src="https://img.shields.io/badge/MinIO-250907T16-00C7B1?logo=minio" alt="MinIO">
 </p>
 
 ---
