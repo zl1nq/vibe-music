@@ -519,11 +519,11 @@ public class SongServiceImpl extends ServiceImpl<SongMapper, Song> implements IS
         // 查询歌曲信息，获取歌曲封面 URL 列表
         List<Song> songs = songMapper.selectByIds(songIds);
 
-        // 删除数据库中的歌曲信息
-        genreMapper.deleteByIds(songIds);
-        playlistBindingMapper.deleteByIds(songIds);
-        userFavoriteMapper.deleteByIds(songIds);
-        commentMapper.deleteByIds(songIds);
+        // 关联表没有以歌曲id作为主键，必须按 song_id 条件删除，不能按主键删除
+        genreMapper.delete(new QueryWrapper<Genre>().in("song_id", songIds));
+        playlistBindingMapper.delete(new QueryWrapper<PlaylistBinding>().in("song_id", songIds));
+        userFavoriteMapper.delete(new QueryWrapper<UserFavorite>().in("song_id", songIds));
+        commentMapper.delete(new QueryWrapper<Comment>().in("song_id", songIds));
         if(songMapper.deleteByIds(songIds) == 0){
             return Result.error(MessageConstant.DELETE + MessageConstant.FAILED);
         }

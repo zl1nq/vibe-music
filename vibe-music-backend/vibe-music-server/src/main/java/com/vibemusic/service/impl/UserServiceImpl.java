@@ -5,9 +5,11 @@ import com.vibemusic.constant.JwtClaimsConstant;
 import com.vibemusic.constant.MessageConstant;
 import com.vibemusic.enumeration.RoleEnum;
 import com.vibemusic.enumeration.UserStatusEnum;
+import com.vibemusic.mapper.FeedbackMapper;
 import com.vibemusic.mapper.UserFavoriteMapper;
 import com.vibemusic.mapper.UserMapper;
 import com.vibemusic.model.dto.*;
+import com.vibemusic.model.entity.Feedback;
 import com.vibemusic.model.entity.User;
 import com.vibemusic.model.entity.UserFavorite;
 import com.vibemusic.model.vo.UserManagementVO;
@@ -63,6 +65,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     private MinioService minioService;
     @Resource
     private UserFavoriteMapper userFavoriteMapper;
+    @Resource
+    private FeedbackMapper feedbackMapper;
 
     /**
      * 发送验证码
@@ -348,9 +352,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
 
         // 删除用户
-        // 先删除用户收藏
+        // 先删除用户收藏和用户反馈（tb_feedback 的外键是 RESTRICT，不删会阻断用户删除；tb_comment 外键为 CASCADE，无需手动删除）
         userFavoriteMapper.delete(new QueryWrapper<UserFavorite>().eq("user_id", userId));
-        // 用户评论留着，不删除
+        feedbackMapper.delete(new QueryWrapper<Feedback>().eq("user_id", userId));
         if (userMapper.deleteById(userId) == 0) {
             return Result.error(MessageConstant.DELETE + MessageConstant.FAILED);
         }
