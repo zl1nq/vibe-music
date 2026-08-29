@@ -76,6 +76,7 @@ role-path-permissions:
   permissions:
     ROLE_ADMIN:
       - "/admin/"
+      - "/playlist-binding/"
     ROLE_USER:
       - "/user/"
       - "/playlist/"

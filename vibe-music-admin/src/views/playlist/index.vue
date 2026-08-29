@@ -10,6 +10,7 @@ import Delete from "@iconify-icons/ep/delete";
 import EditPen from "@iconify-icons/ep/edit-pen";
 import Refresh from "@iconify-icons/ep/refresh";
 import AddFill from "@iconify-icons/ri/add-circle-line";
+import FileMusic from "@iconify-icons/ri/file-music-line";
 
 defineOptions({
   name: "PlaylistManagement"
@@ -34,6 +35,7 @@ const {
   handleUpdate,
   handleDelete,
   handleUpload,
+  handleBindSong,
   handleSizeChange,
   onSelectionCancel,
   handleCurrentChange,
@@ -194,6 +196,18 @@ const {
                 />
                 <template #dropdown>
                   <el-dropdown-menu>
+                    <el-dropdown-item>
+                      <el-button
+                        :class="buttonClass"
+                        link
+                        type="primary"
+                        :size="size"
+                        :icon="useRenderIcon(FileMusic)"
+                        @click="handleBindSong(row)"
+                      >
+                        绑定歌曲
+                      </el-button>
+                    </el-dropdown-item>
                     <el-dropdown-item>
                       <el-button
                         :class="buttonClass"

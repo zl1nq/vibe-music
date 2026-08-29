@@ -421,3 +421,26 @@ export const deleteBanners = (ids: Array<number>) => {
     data: ids
   });
 };
+
+/** 歌单歌曲绑定-获取歌单详情（含歌单内歌曲列表，该接口无需登录态） */
+export const getPlaylistDetail = (id: number) => {
+  return http.request<Result>("get", `/playlist/getPlaylistDetail/${id}`);
+};
+
+/** 歌单歌曲绑定-把歌曲加入歌单 */
+export const addSongToPlaylist = (playlistId: number, songId: number) => {
+  const userData = getToken();
+  return http.request<Result>("post", "/playlist-binding/addSong", {
+    headers: { Authorization: userData.accessToken },
+    params: { playlistId, songId }
+  });
+};
+
+/** 歌单歌曲绑定-把歌曲移出歌单 */
+export const removeSongFromPlaylist = (playlistId: number, songId: number) => {
+  const userData = getToken();
+  return http.request<Result>("delete", "/playlist-binding/removeSong", {
+    headers: { Authorization: userData.accessToken },
+    params: { playlistId, songId }
+  });
+};

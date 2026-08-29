@@ -1,5 +1,6 @@
 import "./reset.css";
 import editForm from "../form/index.vue";
+import bindSongForm from "../bindSong/index.vue";
 import { message } from "@/utils/message";
 import playlistCover from "@/assets/song.jpg";
 import { addDialog } from "@/components/ReDialog";
@@ -268,6 +269,24 @@ export function usePlaylist(tableRef: Ref) {
     });
   }
 
+  /** 绑定歌曲：管理歌单内的歌曲（加入/移出） */
+  function handleBindSong(row) {
+    addDialog({
+      title: `绑定歌曲 - ${row.title}`,
+      props: {
+        playlistId: row.playlistId,
+        playlistTitle: row.title
+      },
+      width: "60%",
+      draggable: true,
+      fullscreen: deviceDetection(),
+      fullscreenIcon: true,
+      closeOnClickModal: false,
+      hideFooter: true,
+      contentRenderer: () => h(bindSongForm)
+    });
+  }
+
   const cropRef = ref();
   /** 上传歌单封面 */
   async function handleUpload(row) {
@@ -333,6 +352,7 @@ export function usePlaylist(tableRef: Ref) {
     handleUpdate,
     handleDelete,
     handleUpload,
+    handleBindSong,
     handleSizeChange,
     onSelectionCancel,
     handleCurrentChange,

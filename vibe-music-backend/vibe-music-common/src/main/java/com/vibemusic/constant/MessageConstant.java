@@ -57,5 +57,8 @@ public class MessageConstant {
 
     public static final String SINGER_IS_NULL = "请选择歌手";
 
+    public static final String SONG_ALREADY_IN_PLAYLIST = "歌曲已在该歌单中";
+    public static final String SONG_NOT_IN_PLAYLIST = "歌曲不在该歌单中";
+
     public static final String FILE_UPLOAD = "文件上传";
 }
