@@ -56,8 +56,12 @@ spring:
           timeout: 3000
           writetimeout: 5000
   ai:
-    dashscope:
-      api-key: ${vibe-music.ai.dashscope.api-key}
+    zhipuai:
+      api-key: ${vibe-music.ai.zhipu.api-key}
+      chat:
+        options:
+          # glm-4-flash 为智谱免费模型
+          model: glm-4-flash
 
 # 配置 mybatis-plus
 mybatis-plus:

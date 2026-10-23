@@ -1,0 +1,123 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: vibe-music-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: vibe_music
+      MYSQL_USER: vibe_music_user
+      MYSQL_PASSWORD: vibe_music_password
+      MYSQL_ROOT_PASSWORD: rootpass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./sql/vibe_music.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -prootpass --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  redis:
+    image: redis:7-alpine
+    container_name: vibe-music-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  # MinIO 2026-09 起从 Docker Hub 下架了官方镜像（dl.min.io 二进制也返回 410），
+  # 改用 Broadcom Bitnami 冻结仓库里的同版本 MinIO 打包镜像。
+  minio:
+    image: bitnamilegacy/minio:latest
+    container_name: vibe-music-minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+  minio-init:
+    image: bitnamilegacy/minio-client:latest
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      until mc alias set local http://minio:9000 minioadmin minioadmin; do sleep 2; done;
+      mc mb -p local/vibe-music-data || true;
+      mc anonymous set download local/vibe-music-data || true;
+      "
+
+  backend:
+    build:
+      context: ./vibe-music-backend
+      dockerfile: Dockerfile
+    container_name: vibe-music-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      minio-init:
+        condition: service_started
+    environment:
+      PORT: 8080
+      SPRING_PROFILES_ACTIVE: dev
+      VIBE_MUSIC_DATASOURCE_URL: jdbc:mysql://mysql:3306/vibe_music?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+      VIBE_MUSIC_DATASOURCE_USERNAME: vibe_music_user
+      VIBE_MUSIC_DATASOURCE_PASSWORD: vibe_music_password
+      VIBE_MUSIC_REDIS_HOST: redis
+      VIBE_MUSIC_REDIS_PORT: 6379
+      VIBE_MUSIC_REDIS_PASSWORD: ""
+      VIBE_MUSIC_MINIO_ENDPOINT: http://minio:9000
+      VIBE_MUSIC_MINIO_ACCESSKEY: minioadmin
+      VIBE_MUSIC_MINIO_SECRETKEY: minioadmin
+      VIBE_MUSIC_MINIO_BUCKET: vibe-music-data
+      # 邮箱服务：真实账号和授权码放在根目录 .env 文件里（已被 .gitignore 忽略）
+      VIBE_MUSIC_MAIL_HOST: ${VIBE_MUSIC_MAIL_HOST:-smtp.qq.com}
+      VIBE_MUSIC_MAIL_USERNAME: ${VIBE_MUSIC_MAIL_USERNAME:-example@qq.com}
+      VIBE_MUSIC_MAIL_PASSWORD: ${VIBE_MUSIC_MAIL_PASSWORD:-your_smtp_password}
+      # 智谱 API key（https://open.bigmodel.cn 创建，glm-4-flash 模型免费）
+      # 真实 key 放在根目录 .env 文件里（已被 .gitignore 忽略），此处仅作兜底
+      VIBE_MUSIC_AI_ZHIPU_API_KEY: ${VIBE_MUSIC_AI_ZHIPU_API_KEY:-change-me}
+    ports:
+      - "8080:8080"
+
+  client:
+    build:
+      context: ./vibe-music-client
+      dockerfile: Dockerfile
+      args:
+        VITE_APP_BASE_API: http://localhost:8080
+    container_name: vibe-music-client
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+
+  admin:
+    build:
+      context: ./vibe-music-admin
+      dockerfile: Dockerfile
+      args:
+        VITE_APP_BASE_API: http://localhost:8080
+    container_name: vibe-music-admin
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "8089:80"
+
+volumes:
+  mysql_data:
+  minio_data:

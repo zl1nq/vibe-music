@@ -1,8 +1,10 @@
 package com.vibemusic.controller.agent;
 
-import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatOptions;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vibemusic.agent.MusicAgentTools;
+import com.vibemusic.agent.SongResultStore;
 import com.vibemusic.model.dto.AgentChatDTO;
+import com.vibemusic.model.vo.SongVO;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -10,12 +12,16 @@ import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
+import org.springframework.ai.zhipuai.ZhiPuAiChatOptions;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.publisher.Flux;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 
 import static com.vibemusic.agent.AgentPrompt.DEFAULT_PROMPT;
 
@@ -26,10 +32,16 @@ public class AgentController {
 
 
     private final ChatClient chatClient;
+    private final SongResultStore songResultStore;
+    private final ObjectMapper objectMapper;
 
     public AgentController(ChatClient.Builder chatClientBuilder,
-                           MusicAgentTools musicAgentTools) {
+                           MusicAgentTools musicAgentTools,
+                           SongResultStore songResultStore,
+                           ObjectMapper objectMapper) {
         log.info("AgentController constructor");
+        this.songResultStore = songResultStore;
+        this.objectMapper = objectMapper;
         this.chatClient = chatClientBuilder
                 .defaultSystem(DEFAULT_PROMPT)
                 .defaultAdvisors(
@@ -37,10 +49,8 @@ public class AgentController {
                         new SimpleLoggerAdvisor())
                 // 设置 ChatClient 中 ChatModel 的 Options 参数
                 .defaultOptions(
-                        DashScopeChatOptions.builder()
+                        ZhiPuAiChatOptions.builder()
                                 .topP(0.7)
-                                // 必须开启增量输出，否则 DashScope 会把整段回复一次性返回，前端无法流式展示
-                                .incrementalOutput(true)
                                 .build()
                 )
                 // 注册 VibeAgent 可调用的音乐数据工具
@@ -60,19 +70,25 @@ public class AgentController {
         response.setHeader("X-Accel-Buffering", "no");
 
         SseEmitter emitter = new SseEmitter(0L);
+        // 本轮对话工具查到的歌曲重新开始记录
+        songResultStore.reset(dto.getConversationId());
         Flux<String> content = this.chatClient.prompt(dto.getQuery())
+                .toolContext(Map.of(SongResultStore.CONVERSATION_ID_KEY, dto.getConversationId()))
                 .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, dto.getConversationId())
                 ).stream().content();
-        streamToEmitter(content, emitter);
+        streamToEmitter(content, emitter, fullText -> sendFallbackSongsTag(dto.getConversationId(), fullText, emitter));
         return emitter;
     }
 
     /**
-     * 把流式内容逐段推送到 SseEmitter（每次 send 都会立即 flush 到客户端）
+     * 把流式内容逐段推送到 SseEmitter（每次 send 都会立即 flush 到客户端）。
+     * 流结束时把完整回复交给 onComplete，用于补写兜底标签。
      */
-    private void streamToEmitter(Flux<String> content, SseEmitter emitter) {
+    private void streamToEmitter(Flux<String> content, SseEmitter emitter, Consumer<String> onComplete) {
+        StringBuilder fullText = new StringBuilder();
         content.subscribe(
                 delta -> {
+                    fullText.append(delta);
                     try {
                         emitter.send(SseEmitter.event().name("text").data(delta));
                     } catch (IOException e) {
@@ -84,8 +100,31 @@ public class AgentController {
                     log.error("agent 对话流式输出失败", error);
                     emitter.completeWithError(error);
                 },
-                emitter::complete
+                () -> {
+                    if (onComplete != null) {
+                        onComplete.accept(fullText.toString());
+                    }
+                    emitter.complete();
+                }
         );
+    }
+
+    /**
+     * 模型没有按约定输出 <vibe-songs> 标签时，用本轮工具记录的真实歌曲补写一个，
+     * 保证前端歌曲卡片一定能渲染（glm-4-flash 对标签格式的遵从并不稳定）。
+     */
+    private void sendFallbackSongsTag(String conversationId, String fullText, SseEmitter emitter) {
+        try {
+            boolean modelEmittedTag = fullText.contains("<vibe-songs") || fullText.contains("[vibe-songs");
+            List<SongVO> songs = songResultStore.take(conversationId);
+            if (modelEmittedTag || songs.isEmpty()) {
+                return;
+            }
+            String json = objectMapper.writeValueAsString(songs);
+            emitter.send(SseEmitter.event().name("text").data("\n<vibe-songs>" + json + "</vibe-songs>"));
+        } catch (Exception e) {
+            log.warn("补写 vibe-songs 标签失败: {}", e.getMessage());
+        }
     }
 
     /**
@@ -94,7 +133,9 @@ public class AgentController {
     @GetMapping("/simple/chat")
     public String simpleChat(@RequestParam(value = "query", defaultValue = "你好，很高兴认识你，能简单介绍一下自己吗？") String query) {
 
-        return chatClient.prompt(query).call().content();
+        return chatClient.prompt(query)
+                .toolContext(Map.of(SongResultStore.CONVERSATION_ID_KEY, "test-simple"))
+                .call().content();
     }
 
     /**
@@ -109,7 +150,9 @@ public class AgentController {
         response.setHeader("X-Accel-Buffering", "no");
 
         SseEmitter emitter = new SseEmitter(0L);
-        streamToEmitter(chatClient.prompt(query).stream().content(), emitter);
+        streamToEmitter(chatClient.prompt(query)
+                .toolContext(Map.of(SongResultStore.CONVERSATION_ID_KEY, "test-stream"))
+                .stream().content(), emitter, null);
         return emitter;
     }
 }

@@ -15,7 +15,9 @@ export interface VibeSong {
   releaseTime?: string
 }
 
-const VIBE_SONGS_TAG = /<vibe-songs>([\s\S]*?)<\/vibe-songs>/g
+// 兼容尖括号 <vibe-songs> 与模型偶尔输出的方括号 [vibe-songs]，开闭符号各自独立匹配
+const VIBE_SONGS_TAG =
+  /(?:<vibe-songs>|\[vibe-songs\])([\s\S]*?)(?:<\/vibe-songs>|\[\/vibe-songs\])/g
 
 /** 从回复文本中提取 <vibe-songs> 标签里的歌曲列表 */
 export const extractVibeSongs = (text: string): VibeSong[] => {
@@ -34,7 +36,8 @@ export const extractVibeSongs = (text: string): VibeSong[] => {
       // 忽略无法解析的标签，仅展示文本
     }
   }
-  return songs
+  // 模型偶尔输出多个标签，按 songId 去重避免卡片重复
+  return songs.filter((s, i) => songs.findIndex((t) => t.songId === s.songId) === i)
 }
 
 /** 去掉回复文本中的 <vibe-songs> 标签，只保留正文 */

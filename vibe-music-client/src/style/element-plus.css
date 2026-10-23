@@ -48,13 +48,24 @@ html.dark {
     margin-left: 0px;
 }
 
-/* 输入框：软填充 + 珊瑚聚焦环 */
+/* 输入框：软填充 + 珊瑚聚焦环，背景与文字颜色随主题切换 */
 .el-input__wrapper,
 .el-textarea__inner {
-    background-color: #f7f3ec;
-    box-shadow: 0 0 0 1px #ede6da inset;
+    background-color: hsl(var(--input));
+    box-shadow: 0 0 0 1px hsl(var(--border)) inset;
     border-radius: 10px;
+    color: hsl(var(--foreground));
     transition: box-shadow 0.25s ease, background-color 0.25s ease;
+}
+
+.el-input__inner,
+.el-textarea__inner {
+    color: hsl(var(--foreground));
+}
+
+.el-input__inner::placeholder,
+.el-textarea__inner::placeholder {
+    color: hsl(var(--muted-foreground));
 }
 
 .el-input__wrapper:hover,
@@ -65,6 +76,23 @@ html.dark {
 .el-input__wrapper.is-focus,
 .el-textarea__inner:focus {
     background-color: #ffffff;
+    box-shadow: 0 0 0 2px var(--el-color-primary) inset;
+}
+
+/* 暗色模式：深色填充 + 浅色文字 */
+html.dark .el-input__wrapper,
+html.dark .el-textarea__inner {
+    box-shadow: 0 0 0 1px rgb(255 255 255 / 0.08) inset;
+}
+
+html.dark .el-input__wrapper:hover,
+html.dark .el-textarea__inner:hover {
+    background-color: hsl(217.2 32.6% 21%);
+}
+
+html.dark .el-input__wrapper.is-focus,
+html.dark .el-textarea__inner:focus {
+    background-color: hsl(217.2 32.6% 14%);
     box-shadow: 0 0 0 2px var(--el-color-primary) inset;
 }
 

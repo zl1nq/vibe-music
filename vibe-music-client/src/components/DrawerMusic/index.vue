@@ -127,4 +127,9 @@ provide('songDetail', songDetail)
   backdrop-filter: blur(20px);
   z-index: -1;
 }
+
+/* 暗色模式下蒙版跟随主题，避免浅色蒙版配浅色文字看不清 */
+.dark .drawer-bg::before {
+  background: rgba(15, 18, 26, 0.85);
+}
 </style>

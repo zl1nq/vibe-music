@@ -152,7 +152,7 @@ const newConversation = () => {
   >
     <div
       v-if="open"
-      class="fixed bottom-24 right-6 w-[400px] max-w-[calc(100vw-3rem)] h-[560px] max-h-[calc(100vh-9rem)] bg-card border border-border rounded-2xl shadow-xl flex flex-col overflow-hidden z-[100]"
+      class="fixed bottom-24 right-6 w-[400px] max-w-[calc(100vw-3rem)] h-[560px] max-h-[calc(100vh-9rem)] bg-background border border-border rounded-2xl shadow-xl flex flex-col overflow-hidden z-[100]"
     >
       <!-- 头部 -->
       <div

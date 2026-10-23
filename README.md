@@ -55,7 +55,7 @@ Vibe Music 是一个前后端分离的在线音乐平台，包含**用户端音�
 - RESTful API + JWT 认证，基于角色的路径权限控制（ROLE_ADMIN / ROLE_USER）
 - MinIO 对象存储管理音频、图片等媒体文件上传
 - Redis 缓存（注解缓存统一 10 分钟有效期）、邮件服务
-- **VibeAgent**：基于 Spring AI + 阿里云百炼（DashScope）的 AI 音乐助手，可通过工具调用查询真实曲库（按关键词搜歌、按风格推荐、热门歌曲），支持 SSE 流式对话与多轮会话记忆
+- **VibeAgent**：基于 Spring AI + 智谱 AI（glm-4-flash）的 AI 音乐助手，可通过工具调用查询真实曲库（按关键词搜歌、按风格推荐、热门歌曲），支持 SSE 流式对话与多轮会话记忆，推荐歌曲自动渲染为可播放卡片
 
 ## 技术栈 🛠️
 
@@ -67,7 +67,7 @@ Vibe Music 是一个前后端分离的在线音乐平台，包含**用户端音�
 | 数据层 | MyBatis-Plus、MySQL、Druid 连接池、Redis |
 | 安全 | JWT、角色路径权限映射 |
 | 存储 / 服务 | MinIO 对象存储、Jakarta Mail 邮件服务 |
-| AI | Spring AI 1.1.2、Spring AI Alibaba（DashScope / 通义千问） |
+| AI | Spring AI 1.1.2、智谱 AI glm-4-flash |
 | 包管理 | pnpm（前端）、Maven（后端） |
 
 ## 整体结构 📂
@@ -89,35 +89,49 @@ vibe-music/
 
 > 更详细的文档：[如何开始](./docs/部署.md)
 
-### 环境要求
+### 一条命令启动（推荐）
 
-- JDK 17+、Maven
-- Node.js ≥ 18、pnpm≥9
-- MySQL、Redis、MinIO
-
-### 启动后端
+本机只需安装 [Docker Desktop](https://www.docker.com/products/docker-desktop/)（自带 Docker Compose），在项目根目录执行：
 
 ```bash
+docker compose up -d --build
+```
+
+首次构建需要几分钟（后端 Maven、前端 pnpm 依赖安装与打包都在容器内完成），完成后自动：
+
+- 启动 MySQL 8.0，并用 `sql/vibe_music.sql` 自动初始化数据库
+- 启动 Redis、MinIO，并自动创建 `vibe-music-data` 存储桶（开放匿名读）
+- 构建并启动后端服务、用户端、管理端
+
+| 服务 | 地址 |
+| --- | --- |
+| 用户端 | http://localhost:5173 |
+| 管理端 | http://localhost:8089 |
+| 后端 API | http://localhost:8080 |
+| MinIO 控制台 | http://localhost:9001（minioadmin / minioadmin） |
+
+可选配置（项目根目录 `.env` 文件，已被 .gitignore 忽略，改完执行 `docker compose up -d backend` 生效）：
+
+- **AI 助手**：智谱 API Key（[open.bigmodel.cn](https://open.bigmodel.cn) 申请，`glm-4-flash` 模型免费），写入 `VIBE_MUSIC_AI_ZHIPU_API_KEY=你的key`
+- **注册邮箱验证码**：QQ 邮箱开启 SMTP 服务并获取授权码，写入 `VIBE_MUSIC_MAIL_USERNAME=你的邮箱` 和 `VIBE_MUSIC_MAIL_PASSWORD=授权码`
+
+### 本地开发（不走 Docker）
+
+按传统方式分别启动各模块，需要 JDK 17+、Maven、Node.js ≥ 18、pnpm ≥ 9 以及 MySQL / Redis / MinIO：
+
+```bash
+# 后端：先修改 vibe-music-server/src/main/resources/application-dev.yml 中的
+# MySQL / Redis / MinIO / 邮箱 / 智谱 API Key 配置
 cd vibe-music-backend
-# 修改 vibe-music-server/src/main/resources/application-dev.yml 中的
-# MySQL / Redis / MinIO / 邮箱 / DashScope API Key 配置
 ./mvnw spring-boot:run -pl vibe-music-server
-```
 
-### 启动用户端
-
-```bash
+# 用户端
 cd vibe-music-client
-pnpm install
-pnpm dev
-```
+pnpm install && pnpm dev
 
-### 启动管理端
-
-```bash
+# 管理端
 cd vibe-music-admin
-pnpm install
-pnpm dev
+pnpm install && pnpm dev
 ```
 <br>
 
